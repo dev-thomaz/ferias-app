@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   Platform,
   TouchableOpacity,
   ScrollView,
+  StatusBar,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { addDays, format } from "date-fns";
+import { addDays, differenceInDays } from "date-fns";
+import { Feather } from "@expo/vector-icons";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { vacationService } from "../services/vacationService";
@@ -29,11 +31,19 @@ export function NewVacationScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
+  const duration = useMemo(() => {
+    const diff = differenceInDays(endDate, startDate);
+    return diff > 0 ? diff : 0;
+  }, [startDate, endDate]);
+
   const handleCreate = async () => {
     if (!user) return;
 
-    if (startDate >= endDate) {
-      Alert.alert("Erro", "A data final deve ser maior que a data inicial.");
+    if (duration <= 0) {
+      Alert.alert(
+        "Datas Inválidas",
+        "A data final deve ser posterior à data inicial."
+      );
       return;
     }
 
@@ -48,9 +58,11 @@ export function NewVacationScreen() {
         managerObservation: "",
       });
 
-      Alert.alert("Sucesso", "Solicitação enviada para aprovação!", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert(
+        "Tudo certo! 🌴",
+        "Sua solicitação foi enviada para o gestor.",
+        [{ text: "Entendido", onPress: () => navigation.goBack() }]
+      );
     } catch (error) {
       Alert.alert("Erro", "Não foi possível criar a solicitação.");
     } finally {
@@ -76,46 +88,114 @@ export function NewVacationScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
-      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 40 }}>
-        <Text className="text-2xl font-bold text-secondary mb-2">
-          Nova Solicitação
+    <View className="flex-1 bg-gray-50 relative">
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent
+      />
+
+      <View className="pt-12 px-6 pb-4 bg-white shadow-sm border-b border-gray-100 z-10 flex-row items-center">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="p-2 -ml-2 rounded-full active:bg-gray-100"
+        >
+          <Feather name="arrow-left" size={24} color="#374151" />
+        </TouchableOpacity>
+        <Text className="text-xl font-bold text-gray-800 ml-2">
+          Agendar Férias
         </Text>
-        <Text className="text-gray-500 mb-8">
-          Preencha os dados abaixo para solicitar suas férias.
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{ padding: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text className="text-gray-500 mb-8 leading-relaxed">
+          Informe o período desejado. O sistema notificará seu gestor
+          automaticamente.
         </Text>
 
-        <View className="mb-6">
-          <Text className="text-secondary font-bold mb-2">
-            Início das Férias
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowStartPicker(true)}
-            className="bg-surface p-4 rounded-xl border border-gray-200"
-          >
-            <Text className="text-secondary text-lg">
-              {formatDate(startDate)}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <View className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-gray-700 font-bold text-base">Período</Text>
 
-        <View className="mb-6">
-          <Text className="text-secondary font-bold mb-2">Fim das Férias</Text>
-          <TouchableOpacity
-            onPress={() => setShowEndPicker(true)}
-            className="bg-surface p-4 rounded-xl border border-gray-200"
-          >
-            <Text className="text-secondary text-lg">
-              {formatDate(endDate)}
-            </Text>
-          </TouchableOpacity>
+            <View
+              className={`px-3 py-1 rounded-full ${
+                duration > 0 ? "bg-blue-50" : "bg-rose-50"
+              }`}
+            >
+              <Text
+                className={`text-xs font-bold ${
+                  duration > 0 ? "text-blue-600" : "text-rose-600"
+                }`}
+              >
+                {duration > 0
+                  ? `${duration} dias selecionados`
+                  : "Datas inválidas"}
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row gap-x-4">
+            <View className="flex-1">
+              <Text className="text-xs text-gray-400 font-bold mb-2 uppercase">
+                Início
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowStartPicker(true)}
+                className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex-row items-center"
+              >
+                <Feather
+                  name="calendar"
+                  size={18}
+                  color="#6B7280"
+                  style={{ marginRight: 8 }}
+                />
+                <Text className="text-gray-800 font-medium text-sm">
+                  {formatDate(startDate)}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-1">
+              <Text className="text-xs text-gray-400 font-bold mb-2 uppercase">
+                Fim
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowEndPicker(true)}
+                className={`bg-gray-50 p-3 rounded-xl border flex-row items-center ${
+                  duration <= 0
+                    ? "border-rose-300 bg-rose-50"
+                    : "border-gray-200"
+                }`}
+              >
+                <Feather
+                  name="calendar"
+                  size={18}
+                  color={duration <= 0 ? "#E11D48" : "#6B7280"}
+                  style={{ marginRight: 8 }}
+                />
+                <Text
+                  className={`font-medium text-sm ${
+                    duration <= 0 ? "text-rose-700" : "text-gray-800"
+                  }`}
+                >
+                  {formatDate(endDate)}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         <View className="mb-8">
-          <Text className="text-secondary font-bold mb-2">Observação</Text>
+          <Text className="text-gray-700 font-bold mb-2 ml-1">
+            Observação (Opcional)
+          </Text>
           <TextInput
-            className="bg-surface p-4 rounded-xl border border-gray-200 h-32 text-secondary"
+            className="bg-white p-4 rounded-2xl border border-gray-200 h-32 text-gray-700 shadow-sm"
             placeholder="Ex: Gostaria de emendar com o feriado..."
+            placeholderTextColor="#9CA3AF"
             multiline
             textAlignVertical="top"
             value={observation}
@@ -124,39 +204,47 @@ export function NewVacationScreen() {
         </View>
 
         <Button
-          title="Enviar Solicitação"
+          title="Confirmar Solicitação"
+          variant="success"
           onPress={handleCreate}
           isLoading={loading}
+          disabled={duration <= 0}
         />
 
-        <TouchableOpacity
-          className="mt-4 py-4"
-          onPress={() => navigation.goBack()}
-          disabled={loading}
-        >
-          <Text className="text-center text-gray-500 font-bold">Cancelar</Text>
-        </TouchableOpacity>
-
-        {showStartPicker && (
-          <DateTimePicker
-            value={startDate}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onStartChange}
-            minimumDate={new Date()}
-          />
-        )}
-
-        {showEndPicker && (
-          <DateTimePicker
-            value={endDate}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onEndChange}
-            minimumDate={addDays(startDate, 1)}
-          />
-        )}
+        <View className="h-20" />
       </ScrollView>
+
+      <View
+        className="absolute bottom-[-20] right-[-30] opacity-5 z-0"
+        pointerEvents="none"
+      >
+        <Feather
+          name="calendar"
+          size={180}
+          color="#000"
+          style={{ transform: [{ rotate: "-15deg" }] }}
+        />
+      </View>
+
+      {showStartPicker && (
+        <DateTimePicker
+          value={startDate}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onStartChange}
+          minimumDate={new Date()}
+        />
+      )}
+
+      {showEndPicker && (
+        <DateTimePicker
+          value={endDate}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onEndChange}
+          minimumDate={addDays(startDate, 1)}
+        />
+      )}
     </View>
   );
 }
