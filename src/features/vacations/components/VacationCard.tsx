@@ -35,7 +35,6 @@ export function VacationCard({ item }: VacationCardProps) {
 
   return (
     <View className="bg-surface p-5 rounded-2xl mb-4 border border-gray-100 shadow-sm">
-      {/* Cabeçalho */}
       <View className="flex-row justify-between items-start mb-3">
         <Text
           className="font-bold text-secondary text-lg flex-1 mr-2"
@@ -53,7 +52,6 @@ export function VacationCard({ item }: VacationCardProps) {
         </View>
       </View>
 
-      {/* Datas Formatadas com o Helper */}
       <View className="flex-row items-center mb-2">
         <Text className="text-2xl mr-2">🗓️</Text>
         <Text className="text-gray-600 font-medium">
@@ -62,7 +60,6 @@ export function VacationCard({ item }: VacationCardProps) {
         </Text>
       </View>
 
-      {/* Observações */}
       {item.observation && (
         <View className="mt-2 bg-gray-50 p-2 rounded-lg">
           <Text className="text-gray-500 text-xs italic">

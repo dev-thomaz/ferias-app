@@ -5,10 +5,12 @@ import { useAuthStore } from "../features/auth/store/useAuthStore";
 import { LoginScreen } from "../features/auth/screens/LoginScreen";
 import { HomeScreen } from "../features/vacations/screens/HomeScreen";
 
+import { NewVacationScreen } from "../features/vacations/screens/NewVacationScreen";
+
 const Stack = createNativeStackNavigator();
 
 export function Routes() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <NavigationContainer>
@@ -18,6 +20,15 @@ export function Routes() {
         ) : (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
+
+            <Stack.Screen
+              name="NewVacation"
+              component={NewVacationScreen}
+              options={{
+                presentation: "modal",
+                animation: "slide_from_bottom",
+              }}
+            />
           </>
         )}
       </Stack.Navigator>

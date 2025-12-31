@@ -60,7 +60,6 @@ export function LoginScreen() {
         isLoading={loading}
       />
 
-      {/* BOTÃO DE SEED - Use apenas para criar os usuários na primeira vez */}
       <View className="mt-10 opacity-50">
         <Button
           title="Criar Usuários de Teste (Seed)"

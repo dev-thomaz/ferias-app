@@ -2,161 +2,161 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
+  TextInput,
   Alert,
-  TouchableOpacity,
   Platform,
+  TouchableOpacity,
+  ScrollView,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { useNavigation } from "@react-navigation/native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { addDays, format } from "date-fns";
 
-import { Button } from "@/components/Button";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { vacationService } from "../services/vacationService";
-import { vacationSchema, VacationFormData } from "../schemas/vacationSchema";
+import { Button } from "@/components/Button";
+import { formatDate } from "@/utils/dateUtils";
 
 export function NewVacationScreen() {
   const navigation = useNavigation();
-  const user = useAuthStore((state) => state.user);
+  const { user } = useAuthStore();
+
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(addDays(new Date(), 15));
+  const [observation, setObservation] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<VacationFormData>({
-    resolver: zodResolver(vacationSchema),
-    defaultValues: { startDate: "", endDate: "", observation: "" },
-  });
+  const handleCreate = async () => {
+    if (!user) return;
 
-  const onSubmit = async (data: VacationFormData) => {
-    if (!user) return Alert.alert("Erro", "Usuário não autenticado");
+    if (startDate >= endDate) {
+      Alert.alert("Erro", "A data final deve ser maior que a data inicial.");
+      return;
+    }
 
+    setLoading(true);
     try {
       await vacationService.createRequest({
         userId: user.id,
         userName: user.name,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        observation: data.observation,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        observation,
+        managerObservation: "",
       });
 
-      Alert.alert("Sucesso", "Solicitação enviada!", [
+      Alert.alert("Sucesso", "Solicitação enviada para aprovação!", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert("Erro", "Falha ao salvar solicitação no Firebase.");
+      Alert.alert("Erro", "Não foi possível criar a solicitação.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onStartChange = (event: any, selectedDate?: Date) => {
+    setShowStartPicker(false);
+    if (selectedDate) {
+      setStartDate(selectedDate);
+      if (selectedDate >= endDate) {
+        setEndDate(addDays(selectedDate, 15));
+      }
+    }
+  };
+
+  const onEndChange = (event: any, selectedDate?: Date) => {
+    setShowEndPicker(false);
+    if (selectedDate) {
+      setEndDate(selectedDate);
     }
   };
 
   return (
-    <ScrollView className="flex-1 bg-background p-6">
-      <Text className="text-2xl font-bold text-secondary mt-10 mb-6">
-        Solicitar Férias
-      </Text>
+    <View className="flex-1 bg-background">
+      <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 40 }}>
+        <Text className="text-2xl font-bold text-secondary mb-2">
+          Nova Solicitação
+        </Text>
+        <Text className="text-gray-500 mb-8">
+          Preencha os dados abaixo para solicitar suas férias.
+        </Text>
 
-      <View className="gap-y-4">
-        {/* Campo Data de Início */}
-        <View>
-          <Text className="text-secondary font-medium mb-1">
-            Data de Início
+        <View className="mb-6">
+          <Text className="text-secondary font-bold mb-2">
+            Início das Férias
           </Text>
-          <Controller
-            control={control}
-            name="startDate"
-            render={({ field: { onChange, value } }) => (
-              <>
-                <TouchableOpacity
-                  onPress={() => setShowStartPicker(true)}
-                  className={`bg-surface p-4 rounded-xl border ${
-                    errors.startDate ? "border-danger" : "border-gray-200"
-                  }`}
-                >
-                  <Text className={value ? "text-secondary" : "text-gray-400"}>
-                    {value
-                      ? format(new Date(value), "dd/MM/yyyy")
-                      : "Selecione a data"}
-                  </Text>
-                </TouchableOpacity>
-                {showStartPicker && (
-                  <DateTimePicker
-                    value={value ? new Date(value) : new Date()}
-                    mode="date"
-                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                    minimumDate={new Date()}
-                    onChange={(_, date) => {
-                      setShowStartPicker(false);
-                      if (date) onChange(date.toISOString());
-                    }}
-                  />
-                )}
-              </>
-            )}
-          />
-          {errors.startDate && (
-            <Text className="text-danger text-xs mt-1">
-              {errors.startDate.message}
+          <TouchableOpacity
+            onPress={() => setShowStartPicker(true)}
+            className="bg-surface p-4 rounded-xl border border-gray-200"
+          >
+            <Text className="text-secondary text-lg">
+              {formatDate(startDate)}
             </Text>
-          )}
+          </TouchableOpacity>
         </View>
 
-        {/* Campo Data de Término */}
-        <View>
-          <Text className="text-secondary font-medium mb-1">
-            Data de Término
-          </Text>
-          <Controller
-            control={control}
-            name="endDate"
-            render={({ field: { onChange, value } }) => (
-              <>
-                <TouchableOpacity
-                  onPress={() => setShowEndPicker(true)}
-                  className={`bg-surface p-4 rounded-xl border ${
-                    errors.endDate ? "border-danger" : "border-gray-200"
-                  }`}
-                >
-                  <Text className={value ? "text-secondary" : "text-gray-400"}>
-                    {value
-                      ? format(new Date(value), "dd/MM/yyyy")
-                      : "Selecione a data"}
-                  </Text>
-                </TouchableOpacity>
-                {showEndPicker && (
-                  <DateTimePicker
-                    value={value ? new Date(value) : new Date()}
-                    mode="date"
-                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                    minimumDate={new Date()}
-                    onChange={(_, date) => {
-                      setShowEndPicker(false);
-                      if (date) onChange(date.toISOString());
-                    }}
-                  />
-                )}
-              </>
-            )}
-          />
-          {errors.endDate && (
-            <Text className="text-danger text-xs mt-1">
-              {errors.endDate.message}
+        <View className="mb-6">
+          <Text className="text-secondary font-bold mb-2">Fim das Férias</Text>
+          <TouchableOpacity
+            onPress={() => setShowEndPicker(true)}
+            className="bg-surface p-4 rounded-xl border border-gray-200"
+          >
+            <Text className="text-secondary text-lg">
+              {formatDate(endDate)}
             </Text>
-          )}
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <View className="mt-10">
+        <View className="mb-8">
+          <Text className="text-secondary font-bold mb-2">Observação</Text>
+          <TextInput
+            className="bg-surface p-4 rounded-xl border border-gray-200 h-32 text-secondary"
+            placeholder="Ex: Gostaria de emendar com o feriado..."
+            multiline
+            textAlignVertical="top"
+            value={observation}
+            onChangeText={setObservation}
+          />
+        </View>
+
         <Button
           title="Enviar Solicitação"
-          onPress={handleSubmit(onSubmit)}
-          isLoading={isSubmitting}
+          onPress={handleCreate}
+          isLoading={loading}
         />
-      </View>
-    </ScrollView>
+
+        <TouchableOpacity
+          className="mt-4 py-4"
+          onPress={() => navigation.goBack()}
+          disabled={loading}
+        >
+          <Text className="text-center text-gray-500 font-bold">Cancelar</Text>
+        </TouchableOpacity>
+
+        {showStartPicker && (
+          <DateTimePicker
+            value={startDate}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onStartChange}
+            minimumDate={new Date()}
+          />
+        )}
+
+        {showEndPicker && (
+          <DateTimePicker
+            value={endDate}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onEndChange}
+            minimumDate={addDays(startDate, 1)}
+          />
+        )}
+      </ScrollView>
+    </View>
   );
 }

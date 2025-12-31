@@ -111,7 +111,6 @@ export function HomeScreen() {
 
   return (
     <View className="flex-1 bg-background p-6 pt-16">
-      {/* Cabeçalho */}
       <View className="flex-row justify-between items-center mb-8">
         <View>
           <Text className="text-gray-500">Bem-vindo,</Text>
@@ -127,14 +126,12 @@ export function HomeScreen() {
         </View>
       </View>
 
-      {/* Título da Seção */}
       <Text className="text-xl font-bold text-secondary mb-4">
         {user?.role === "COLABORADOR"
           ? "Minhas Solicitações"
           : "Pendentes de Aprovação"}
       </Text>
 
-      {/* Listagem */}
       {loading && data.length === 0 ? (
         <ActivityIndicator size="large" color="#2563EB" className="mt-10" />
       ) : (
@@ -167,7 +164,6 @@ export function HomeScreen() {
         />
       )}
 
-      {/* Botão Flutuante para Colaborador (FAB) */}
       {user?.role === "COLABORADOR" && (
         <View className="absolute bottom-6 left-6 right-6">
           <Button
@@ -178,7 +174,6 @@ export function HomeScreen() {
         </View>
       )}
 
-      {/* Modal de Decisão (Gestor) */}
       <ActionModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
