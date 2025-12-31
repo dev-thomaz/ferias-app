@@ -7,6 +7,8 @@ import {
   where,
   getDocs,
   orderBy,
+  doc,
+  updateDoc,
 } from "firebase/firestore";
 
 export interface VacationRequest {
@@ -19,6 +21,7 @@ export interface VacationRequest {
   createdAt: any;
   managedBy?: string;
   managerObservation?: string;
+  updatedAt?: string;
 }
 
 export const vacationService = {
@@ -54,5 +57,20 @@ export const vacationService = {
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  },
+
+  async updateStatus(
+    requestId: string,
+    status: "APPROVED" | "REJECTED",
+    managerId: string,
+    managerObservation?: string
+  ) {
+    const docRef = doc(db, "vacations", requestId);
+    await updateDoc(docRef, {
+      status,
+      managedBy: managerId,
+      managerObservation,
+      updatedAt: new Date().toISOString(),
+    });
   },
 };

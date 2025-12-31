@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
-export type UserRole = "COLABORADOR" | "GESTOR" | "ADMIN";
+export type UserRole = "GESTOR" | "COLABORADOR";
 
-interface User {
+export interface User {
   id: string;
+  name: string;
   email: string;
   role: UserRole;
-  name: string;
 }
 
 interface AuthState {
@@ -19,6 +19,8 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
+
   setUser: (user) => set({ user, isAuthenticated: !!user }),
+
   logout: () => set({ user: null, isAuthenticated: false }),
 }));
