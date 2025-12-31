@@ -5,9 +5,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 
+export type ButtonVariant = "primary" | "success" | "danger" | "secondary";
+
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
-  variant?: "primary" | "success" | "danger" | "secondary";
+  variant?: ButtonVariant;
   isLoading?: boolean;
 }
 
@@ -17,10 +19,10 @@ export function Button({
   isLoading,
   ...rest
 }: ButtonProps) {
-  const variants = {
+  const variants: Record<ButtonVariant, string> = {
     primary: "bg-primary",
-    success: "bg-success",
-    danger: "bg-danger",
+    success: "bg-emerald-600",
+    danger: "bg-rose-600",
     secondary: "bg-secondary",
   };
 

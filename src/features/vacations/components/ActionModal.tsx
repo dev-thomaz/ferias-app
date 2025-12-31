@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Button } from "@/components/Button";
+import { Button, ButtonVariant } from "@/components/Button";
+
+export type ActionType = "APPROVE" | "REJECT";
 
 interface ActionModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: (observation: string) => void;
-  action: "APPROVE" | "REJECT";
+  action: ActionType;
   isLoading?: boolean;
 }
 
@@ -27,11 +29,26 @@ export function ActionModal({
 }: ActionModalProps) {
   const [observation, setObservation] = useState("");
 
-  const isApprove = action === "APPROVE";
+  useEffect(() => {
+    if (visible) {
+      setObservation("");
+    }
+  }, [visible]);
 
-  const colorText = isApprove ? "text-emerald-700" : "text-rose-700";
-  const title = isApprove ? "Aprovar Férias" : "Reprovar Férias";
-  const btnVariant = isApprove ? "success" : "danger";
+  const modalConfig = {
+    APPROVE: {
+      title: "Aprovar Férias",
+      colorText: "text-emerald-700",
+      btnVariant: "success" as ButtonVariant,
+    },
+    REJECT: {
+      title: "Reprovar Férias",
+      colorText: "text-rose-700",
+      btnVariant: "danger" as ButtonVariant,
+    },
+  };
+
+  const theme = modalConfig[action];
 
   return (
     <Modal
@@ -45,8 +62,10 @@ export function ActionModal({
         className="flex-1 bg-black/60 justify-center items-center p-6"
       >
         <View className="bg-background w-full rounded-3xl p-6 shadow-xl">
-          <Text className={`text-2xl font-bold mb-2 text-center ${colorText}`}>
-            {title}
+          <Text
+            className={`text-2xl font-bold mb-2 text-center ${theme.colorText}`}
+          >
+            {theme.title}
           </Text>
 
           <Text className="text-gray-500 mb-6 text-center">
@@ -60,12 +79,15 @@ export function ActionModal({
             textAlignVertical="top"
             value={observation}
             onChangeText={setObservation}
+            autoFocus={false}
           />
 
           <View className="gap-y-3">
             <Button
-              title={`Confirmar ${isApprove ? "Aprovação" : "Reprovação"}`}
-              variant={btnVariant}
+              title={`Confirmar ${
+                action === "APPROVE" ? "Aprovação" : "Reprovação"
+              }`}
+              variant={theme.btnVariant}
               onPress={() => onConfirm(observation)}
               isLoading={isLoading}
             />

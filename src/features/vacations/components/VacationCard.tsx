@@ -1,16 +1,12 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { format } from "date-fns";
+
+import { VacationRequest } from "../services/vacationService";
+
+import { formatDate } from "@/utils/dateUtils";
 
 interface VacationCardProps {
-  item: {
-    userName: string;
-    startDate: string;
-    endDate: string;
-    status: "PENDING" | "APPROVED" | "REJECTED";
-    observation?: string;
-    managerObservation?: string;
-  };
+  item: VacationRequest & { id?: string };
 }
 
 export function VacationCard({ item }: VacationCardProps) {
@@ -39,7 +35,7 @@ export function VacationCard({ item }: VacationCardProps) {
 
   return (
     <View className="bg-surface p-5 rounded-2xl mb-4 border border-gray-100 shadow-sm">
-      {/* Cabeçalho do Card: Nome e Badge de Status */}
+      {/* Cabeçalho */}
       <View className="flex-row justify-between items-start mb-3">
         <Text
           className="font-bold text-secondary text-lg flex-1 mr-2"
@@ -57,17 +53,16 @@ export function VacationCard({ item }: VacationCardProps) {
         </View>
       </View>
 
-      {/* Datas */}
+      {/* Datas Formatadas com o Helper */}
       <View className="flex-row items-center mb-2">
         <Text className="text-2xl mr-2">🗓️</Text>
         <Text className="text-gray-600 font-medium">
-          {format(new Date(item.startDate), "dd/MM/yy")}{" "}
-          <Text className="text-gray-400">até</Text>{" "}
-          {format(new Date(item.endDate), "dd/MM/yy")}
+          {formatDate(item.startDate)}{" "}
+          <Text className="text-gray-400">até</Text> {formatDate(item.endDate)}
         </Text>
       </View>
 
-      {/* Observação do Colaborador */}
+      {/* Observações */}
       {item.observation && (
         <View className="mt-2 bg-gray-50 p-2 rounded-lg">
           <Text className="text-gray-500 text-xs italic">
@@ -76,7 +71,6 @@ export function VacationCard({ item }: VacationCardProps) {
         </View>
       )}
 
-      {/* Observação do Gestor (Se houver) */}
       {item.managerObservation && (
         <View className="mt-2 pt-2 border-t border-gray-100">
           <Text className="text-gray-400 text-xs font-bold mb-1">
