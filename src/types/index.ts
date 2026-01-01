@@ -1,13 +1,9 @@
-export enum UserRole {
-  EMPLOYEE = "EMPLOYEE",
-  MANAGER = "MANAGER",
-  ADMIN = "ADMIN",
-}
+export type UserRole = "GESTOR" | "COLABORADOR" | "ADMIN";
 
-export enum RequestStatus {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
+export type VacationStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface VacationConfig {
+  allowConcurrentRequests: boolean;
 }
 
 export interface User {
@@ -15,18 +11,37 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  admissionDate: string;
+  avatarID?: number | string | null;
   department?: string;
+  admissionDate?: string;
+}
+
+export interface CreateVacationDTO {
+  userId: string;
+  userName: string;
+  userAvatarId?: number | string | null;
+  startDate: string;
+  endDate: string;
+  observation?: string;
 }
 
 export interface VacationRequest {
   id: string;
+
   userId: string;
   userName: string;
+  userAvatarId?: number | string | null;
+
   startDate: string;
   endDate: string;
-  status: RequestStatus;
-  notes?: string;
-  rejectionReason?: string;
+  observation?: string;
+  status: VacationStatus;
+
   createdAt: string;
+  updatedAt?: string;
+
+  managedBy?: string;
+  managerName?: string;
+  managerAvatarId?: number | string | null;
+  managerObservation?: string;
 }

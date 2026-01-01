@@ -1,7 +1,9 @@
 import { format, isValid } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const formatDate = (
-  dateString: string | Date | undefined | null
+  dateString: string | Date | undefined | null,
+  pattern: string = "dd/MM/yy"
 ): string => {
   if (!dateString) return "--/--/--";
 
@@ -11,5 +13,5 @@ export const formatDate = (
     return "--/--/--";
   }
 
-  return format(date, "dd/MM/yy");
+  return format(date, pattern, { locale: ptBR });
 };

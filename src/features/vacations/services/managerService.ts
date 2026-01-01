@@ -1,17 +1,17 @@
 import { db } from "@/config/firebase";
 import {
   collection,
-  addDoc,
-  serverTimestamp,
   query,
   where,
   getDocs,
   orderBy,
+  doc,
+  updateDoc,
   Timestamp,
   DocumentData,
   QueryDocumentSnapshot,
 } from "firebase/firestore";
-import { VacationRequest, CreateVacationDTO, VacationStatus } from "../types";
+import { VacationRequest, VacationStatus } from "../types";
 
 const mapDocument = (
   doc: QueryDocumentSnapshot<DocumentData>
@@ -38,23 +38,34 @@ const mapDocument = (
   };
 };
 
-export const vacationService = {
-  async createRequest(data: CreateVacationDTO): Promise<string> {
-    const docRef = await addDoc(collection(db, "vacations"), {
-      ...data,
-      status: "PENDING",
-      createdAt: serverTimestamp(),
-    });
-    return docRef.id;
-  },
-
-  async getUserVacations(userId: string): Promise<VacationRequest[]> {
+export const managerService = {
+  async getPendingRequests(): Promise<VacationRequest[]> {
     const q = query(
       collection(db, "vacations"),
-      where("userId", "==", userId),
+      where("status", "==", "PENDING"),
       orderBy("createdAt", "desc")
     );
     const querySnapshot = await getDocs(q);
+
     return querySnapshot.docs.map(mapDocument);
+  },
+
+  async updateStatus(
+    requestId: string,
+    status: VacationStatus,
+    managerId: string,
+    managerName: string,
+    managerObservation?: string,
+    managerAvatarId?: string | number
+  ): Promise<void> {
+    const docRef = doc(db, "vacations", requestId);
+    await updateDoc(docRef, {
+      status,
+      managedBy: managerId,
+      managerName,
+      managerObservation,
+      managerAvatarId,
+      updatedAt: new Date().toISOString(),
+    });
   },
 };

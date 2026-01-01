@@ -12,12 +12,17 @@ import { StatusBar } from "expo-status-bar";
 import "@/styles/global.css";
 
 export default function App() {
-  const { setUser } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        if (user?.id === firebaseUser.uid && user?.avatarID !== undefined) {
+          setInitializing(false);
+          return;
+        }
+
         try {
           const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
 
@@ -29,6 +34,8 @@ export default function App() {
               email: firebaseUser.email!,
               name: userData.name,
               role: userData.role,
+
+              avatarID: userData.avatarID,
             });
           }
         } catch (error) {
@@ -46,8 +53,8 @@ export default function App() {
 
   if (initializing) {
     return (
-      <View className="flex-1 justify-center items-center bg-background">
-        <ActivityIndicator size="large" color="#2563EB" />
+      <View className="flex-1 justify-center items-center bg-gray-50">
+        <ActivityIndicator size="large" color="#059669" />
       </View>
     );
   }

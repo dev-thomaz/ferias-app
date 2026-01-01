@@ -35,20 +35,21 @@ export function ActionModal({
     }
   }, [visible]);
 
-  const modalConfig = {
-    APPROVE: {
-      title: "Aprovar Férias",
-      colorText: "text-emerald-700",
-      btnVariant: "success" as ButtonVariant,
-    },
-    REJECT: {
-      title: "Reprovar Férias",
-      colorText: "text-rose-700",
-      btnVariant: "danger" as ButtonVariant,
-    },
-  };
+  const isApprove = action === "APPROVE";
 
-  const theme = modalConfig[action];
+  const title = isApprove ? "Aprovar Férias" : "Reprovar Férias";
+  const colorText = isApprove ? "text-emerald-700" : "text-rose-700";
+  const btnVariant: ButtonVariant = isApprove ? "success" : "danger";
+
+  const description = isApprove
+    ? "Deseja confirmar a aprovação desta solicitação?"
+    : "Informe o motivo da reprovação.";
+
+  const label = isApprove ? "Observação (Opcional)" : "Motivo (Opcional)";
+
+  const placeholder = isApprove
+    ? "Ex: Bom descanso!..."
+    : "Ex: O período coincide com a entrega do projeto...";
 
   return (
     <Modal
@@ -61,20 +62,21 @@ export function ActionModal({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1 bg-black/60 justify-center items-center p-6"
       >
-        <View className="bg-background w-full rounded-3xl p-6 shadow-xl">
-          <Text
-            className={`text-2xl font-bold mb-2 text-center ${theme.colorText}`}
-          >
-            {theme.title}
+        <View className="bg-white w-full rounded-3xl p-6 shadow-xl">
+          <Text className={`text-2xl font-bold mb-2 text-center ${colorText}`}>
+            {title}
           </Text>
 
-          <Text className="text-gray-500 mb-6 text-center">
-            Deseja adicionar uma observação para o colaborador?
+          <Text className="text-gray-500 mb-6 text-center">{description}</Text>
+
+          <Text className="text-xs font-bold text-gray-400 uppercase mb-2 ml-1">
+            {label}
           </Text>
 
           <TextInput
-            className="bg-surface p-4 rounded-xl border border-gray-200 h-28 mb-6 text-secondary"
-            placeholder="Ex: Bom descanso! ou Precisamos conversar sobre as datas..."
+            className="bg-gray-50 p-4 rounded-xl border border-gray-200 h-28 mb-6 text-gray-800"
+            placeholder={placeholder}
+            placeholderTextColor="#9CA3AF"
             multiline
             textAlignVertical="top"
             value={observation}
@@ -84,10 +86,8 @@ export function ActionModal({
 
           <View className="gap-y-3">
             <Button
-              title={`Confirmar ${
-                action === "APPROVE" ? "Aprovação" : "Reprovação"
-              }`}
-              variant={theme.btnVariant}
+              title={`Confirmar ${isApprove ? "Aprovação" : "Reprovação"}`}
+              variant={btnVariant}
               onPress={() => onConfirm(observation)}
               isLoading={isLoading}
             />

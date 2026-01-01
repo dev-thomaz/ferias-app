@@ -3,11 +3,10 @@ import {
   View,
   Text,
   TextInput,
-  Alert,
-  Platform,
   TouchableOpacity,
   ScrollView,
   StatusBar,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -16,8 +15,11 @@ import { Feather } from "@expo/vector-icons";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { vacationService } from "../services/vacationService";
+import { CreateVacationDTO } from "../types";
 import { Button } from "@/components/Button";
 import { formatDate } from "@/utils/dateUtils";
+
+import { Dialog, DialogVariant } from "@/components/Dialog";
 
 export function NewVacationScreen() {
   const navigation = useNavigation();
@@ -31,40 +33,79 @@ export function NewVacationScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
+  const [dialog, setDialog] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "info" as DialogVariant,
+    onConfirm: () => {},
+  });
+
   const duration = useMemo(() => {
     const diff = differenceInDays(endDate, startDate);
     return diff > 0 ? diff : 0;
   }, [startDate, endDate]);
 
+  const closeDialog = () => setDialog((prev) => ({ ...prev, visible: false }));
+
   const handleCreate = async () => {
     if (!user) return;
 
     if (duration <= 0) {
-      Alert.alert(
-        "Datas Inválidas",
-        "A data final deve ser posterior à data inicial."
-      );
+      setDialog({
+        visible: true,
+        title: "Datas Inválidas",
+        message: "A data final deve ser posterior à data inicial.",
+        variant: "warning",
+        onConfirm: closeDialog,
+      });
       return;
     }
 
     setLoading(true);
     try {
-      await vacationService.createRequest({
+      const currentUser = user as any;
+      const safeUserAvatarId =
+        currentUser?.avatarID ??
+        currentUser?.avatarId ??
+        currentUser?.avatar ??
+        null;
+
+      const requestData: CreateVacationDTO = {
         userId: user.id,
         userName: user.name,
+
+        userAvatarId: safeUserAvatarId,
+
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        observation,
-        managerObservation: "",
-      });
+        observation: observation.trim(),
+      };
 
-      Alert.alert(
-        "Tudo certo! 🌴",
-        "Sua solicitação foi enviada para o gestor.",
-        [{ text: "Entendido", onPress: () => navigation.goBack() }]
-      );
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível criar a solicitação.");
+      await vacationService.createRequest(requestData);
+
+      setDialog({
+        visible: true,
+        title: "Tudo certo! 🌴",
+        message: "Sua solicitação foi enviada para o gestor com sucesso.",
+        variant: "success",
+        onConfirm: () => {
+          closeDialog();
+          navigation.goBack();
+        },
+      });
+    } catch (error: any) {
+      console.error("Erro ao criar solicitação:", error);
+
+      setDialog({
+        visible: true,
+        title: "Ops, algo deu errado",
+        message:
+          error?.message ||
+          "Não foi possível criar a solicitação. Tente novamente mais tarde.",
+        variant: "error",
+        onConfirm: closeDialog,
+      });
     } finally {
       setLoading(false);
     }
@@ -119,7 +160,6 @@ export function NewVacationScreen() {
         <View className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-gray-700 font-bold text-base">Período</Text>
-
             <View
               className={`px-3 py-1 rounded-full ${
                 duration > 0 ? "bg-blue-50" : "bg-rose-50"
@@ -245,6 +285,14 @@ export function NewVacationScreen() {
           minimumDate={addDays(startDate, 1)}
         />
       )}
+
+      <Dialog
+        visible={dialog.visible}
+        title={dialog.title}
+        message={dialog.message}
+        variant={dialog.variant}
+        onConfirm={dialog.onConfirm}
+      />
     </View>
   );
 }

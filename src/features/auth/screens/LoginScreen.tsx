@@ -1,29 +1,76 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Alert } from "react-native";
+import { View, Text, TextInput, Keyboard } from "react-native";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { authService } from "../services/authService";
 import { Button } from "@/components/Button";
+import { Dialog, DialogVariant } from "@/components/Dialog";
 
 export function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [dialog, setDialog] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "info" as DialogVariant,
+  });
+
   const setUser = useAuthStore((state) => state.setUser);
 
+  const closeDialog = () => {
+    setDialog((prev) => ({ ...prev, visible: false }));
+  };
+
   const handleLogin = async () => {
-    if (!email || !password)
-      return Alert.alert("Erro", "Preencha todos os campos");
+    Keyboard.dismiss();
+
+    if (!email || !password) {
+      setDialog({
+        visible: true,
+        title: "Campos obrigatórios",
+        message:
+          "Por favor, preencha seu e-mail e senha para acessar o sistema.",
+        variant: "warning",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
       const userData = await authService.login(email, password);
       setUser(userData as any);
     } catch (error: any) {
-      Alert.alert("Erro de Autenticação", "E-mail ou senha inválidos.");
       console.error(error);
+      setDialog({
+        visible: true,
+        title: "Acesso Negado",
+        message: "E-mail ou senha incorretos. Verifique suas credenciais.",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSeed = async () => {
+    try {
+      await authService.seedUsers();
+      setDialog({
+        visible: true,
+        title: "Banco de Dados",
+        message:
+          "Usuários de teste (Gestor e Colaborador) foram criados/verificados com sucesso.",
+        variant: "success",
+      });
+    } catch (error) {
+      setDialog({
+        visible: true,
+        title: "Erro no Seed",
+        message: "Não foi possível criar os usuários de teste.",
+        variant: "error",
+      });
     }
   };
 
@@ -64,12 +111,17 @@ export function LoginScreen() {
         <Button
           title="Criar Usuários de Teste (Seed)"
           variant="secondary"
-          onPress={async () => {
-            await authService.seedUsers();
-            Alert.alert("Seed", "Usuários criados ou já existentes.");
-          }}
+          onPress={handleSeed}
         />
       </View>
+
+      <Dialog
+        visible={dialog.visible}
+        title={dialog.title}
+        message={dialog.message}
+        variant={dialog.variant}
+        onConfirm={closeDialog}
+      />
     </View>
   );
 }

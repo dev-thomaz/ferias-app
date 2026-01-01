@@ -18,10 +18,15 @@ export const authService = {
       throw new Error("Perfil não encontrado.");
     }
 
+    const data = userDoc.data();
+
     return {
       id: uid,
       email,
-      ...userDoc.data(),
+      name: data.name,
+      role: data.role,
+
+      avatarID: data.avatarID ?? data.avatarId ?? null,
     };
   },
 
@@ -33,7 +38,13 @@ export const authService = {
     );
     const { uid } = userCredential.user;
 
-    const userData = { name, email, role };
+    const userData = {
+      name,
+      email,
+      role,
+      avatarID: null,
+    };
+
     await setDoc(doc(db, "users", uid), userData);
 
     return { id: uid, ...userData };
@@ -62,10 +73,7 @@ export const authService = {
     for (const u of users) {
       try {
         await this.register(u.email, u.pass, u.name, u.role as UserRole);
-        console.log(`Usuário ${u.role} criado.`);
-      } catch (e) {
-        console.log(`Usuário ${u.role} já existe.`);
-      }
+      } catch (e) {}
     }
   },
 };
