@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,20 +6,32 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   LayoutAnimation,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useColorScheme } from "nativewind";
 
 import { adminService } from "../services/adminService";
-import { User } from "@/features/auth/store/useAuthStore";
+import { User, UserRole } from "@/features/auth/store/useAuthStore";
 import { Avatar } from "@/components/Avatar";
 import { formatShortName } from "@/utils/textUtils";
 import { Dialog, DialogVariant } from "@/components/Dialog";
 
+type StatusFilter = "ALL" | "ACTIVE" | "DISABLED";
+type RoleFilter = "ALL" | UserRole;
+
 export function EmployeesListScreen() {
   const navigation = useNavigation();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
 
   const [dialog, setDialog] = useState({
     visible: false,
@@ -45,30 +57,19 @@ export function EmployeesListScreen() {
     loadUsers();
   }, []);
 
-  const openStatusDialog = (user: any) => {
-    const isActive = user.accountStatus === "ACTIVE";
-    setDialog({
-      visible: true,
-      title: isActive ? "Desativar Usuário" : "Reativar Usuário",
-      message: `Deseja ${
-        isActive ? "remover" : "restaurar"
-      } o acesso de ${formatShortName(user.name)}?`,
-      variant: isActive ? "error" : "success",
-      confirmText: isActive ? "Desativar" : "Reativar",
-      onConfirm: () => handleToggleStatus(user.id, user.accountStatus),
-    });
-  };
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const matchSearch =
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase());
 
-  const openResetDialog = (user: any) => {
-    setDialog({
-      visible: true,
-      title: "Resetar Senha",
-      message: `Enviar e-mail de recuperação de senha para ${user.email}?`,
-      variant: "warning",
-      confirmText: "Enviar E-mail",
-      onConfirm: () => handleResetPassword(user.email),
+      const matchStatus =
+        statusFilter === "ALL" || (u as any).accountStatus === statusFilter;
+      const matchRole = roleFilter === "ALL" || u.role === roleFilter;
+
+      return matchSearch && matchStatus && matchRole;
     });
-  };
+  }, [users, search, statusFilter, roleFilter]);
 
   const handleToggleStatus = async (userId: string, currentStatus: string) => {
     const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
@@ -92,7 +93,7 @@ export function EmployeesListScreen() {
       setDialog({
         visible: true,
         title: "E-mail Enviado",
-        message: "O link de recuperação foi enviado para o colaborador.",
+        message: "O link de recuperação foi enviado com sucesso.",
         variant: "success",
         confirmText: "OK",
         onConfirm: () => setDialog((d) => ({ ...d, visible: false })),
@@ -102,49 +103,106 @@ export function EmployeesListScreen() {
     }
   };
 
+  const openStatusDialog = (user: any) => {
+    const isActive = user.accountStatus === "ACTIVE";
+    setDialog({
+      visible: true,
+      title: isActive ? "Desativar Usuário" : "Reativar Usuário",
+      message: `Deseja ${
+        isActive ? "remover" : "restaurar"
+      } o acesso de ${formatShortName(user.name)}?`,
+      variant: isActive ? "error" : "success",
+      confirmText: isActive ? "Desativar" : "Reativar",
+      onConfirm: () => handleToggleStatus(user.id, user.accountStatus),
+    });
+  };
+
+  const openResetDialog = (user: any) => {
+    setDialog({
+      visible: true,
+      title: "Resetar Senha",
+      message: `Enviar e-mail de recuperação para ${user.email}?`,
+      variant: "warning",
+      confirmText: "Enviar E-mail",
+      onConfirm: () => handleResetPassword(user.email),
+    });
+  };
+
+  const FilterChip = ({ label, active, onPress, icon }: any) => (
+    <TouchableOpacity
+      onPress={onPress}
+      className={`flex-row items-center px-4 py-2 rounded-full mr-2 border ${
+        active
+          ? "bg-purple-600 border-purple-600 shadow-sm"
+          : "bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-800"
+      }`}
+    >
+      {icon && (
+        <Feather
+          name={icon}
+          size={14}
+          color={active ? "#FFF" : isDark ? "#9CA3AF" : "#6B7280"}
+          style={{ marginRight: 6 }}
+        />
+      )}
+      <Text
+        className={`font-bold text-xs ${
+          active ? "text-white" : "text-gray-500 dark:text-gray-400"
+        }`}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
   const renderItem = ({ item }: { item: any }) => {
     const isActive = item.accountStatus === "ACTIVE";
-
     return (
       <View
-        className={`bg-white rounded-3xl mb-4 shadow-sm border ${
-          isActive ? "border-gray-100" : "border-gray-200 bg-gray-50"
+        className={`bg-surface-light dark:bg-surface-dark rounded-3xl mb-4 shadow-sm border ${
+          isActive
+            ? "border-gray-100 dark:border-gray-800"
+            : "border-gray-200 dark:border-gray-800 bg-background-light dark:bg-background-dark/30"
         }`}
       >
         <View className="p-4 flex-row items-center">
           <View style={{ opacity: isActive ? 1 : 0.4 }}>
             <Avatar name={item.name} avatarId={item.avatarID} size="md" />
           </View>
-
           <View className="ml-3 flex-1">
             <View className="flex-row items-center">
               <Text
                 className={`font-bold text-base ${
-                  isActive ? "text-gray-800" : "text-gray-400"
+                  isActive
+                    ? "text-gray-800 dark:text-gray-100"
+                    : "text-gray-400 dark:text-gray-500"
                 }`}
               >
                 {formatShortName(item.name)}
               </Text>
               {!isActive && (
-                <View className="ml-2 bg-gray-200 px-1.5 py-0.5 rounded">
-                  <Text className="text-[8px] font-bold text-gray-500 uppercase">
+                <View className="ml-2 bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                  <Text className="text-[8px] font-black text-gray-500 dark:text-gray-300 uppercase">
                     OFF
                   </Text>
                 </View>
               )}
             </View>
-            <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+            <Text className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-widest">
               {item.role}
             </Text>
           </View>
 
-          {/* Botões de Ação Rápidos */}
           <View className="flex-row gap-x-2">
             <TouchableOpacity
               onPress={() => openResetDialog(item)}
-              className="w-10 h-10 bg-amber-50 rounded-full items-center justify-center border border-amber-100"
+              className="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 rounded-full items-center justify-center border border-amber-100 dark:border-amber-900/30"
             >
-              <Feather name="key" size={16} color="#d97706" />
+              <Feather
+                name="key"
+                size={16}
+                color={isDark ? "#fbbf24" : "#d97706"}
+              />
             </TouchableOpacity>
 
             {item.role !== "ADMIN" && (
@@ -152,54 +210,134 @@ export function EmployeesListScreen() {
                 onPress={() => openStatusDialog(item)}
                 className={`w-10 h-10 rounded-full items-center justify-center border ${
                   isActive
-                    ? "bg-red-50 border-red-100"
-                    : "bg-emerald-50 border-emerald-100"
+                    ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30"
+                    : "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30"
                 }`}
               >
                 <Feather
                   name={isActive ? "user-x" : "user-check"}
                   size={16}
-                  color={isActive ? "#ef4444" : "#10b981"}
+                  color={
+                    isActive
+                      ? isDark
+                        ? "#fb7185"
+                        : "#ef4444"
+                      : isDark
+                      ? "#34d399"
+                      : "#10b981"
+                  }
                 />
               </TouchableOpacity>
             )}
           </View>
         </View>
-
-        {/* Info adicional discreta */}
         <View className="px-4 pb-3 flex-row items-center">
-          <Feather name="mail" size={10} color="#9CA3AF" />
-          <Text className="text-gray-400 text-[10px] ml-1">{item.email}</Text>
+          <Feather
+            name="mail"
+            size={10}
+            color={isDark ? "#4B5563" : "#9CA3AF"}
+          />
+          <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1">
+            {item.email}
+          </Text>
         </View>
       </View>
     );
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <View className="bg-purple-700 pt-12 pb-8 px-6 rounded-b-[32px] shadow-lg">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="mb-4 w-10 h-10 bg-purple-600 rounded-full items-center justify-center"
-        >
-          <Feather name="arrow-left" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text className="text-white font-bold text-3xl">Colaboradores</Text>
-        <Text className="text-purple-200 text-base">
-          Gestão de acessos e segurança
-        </Text>
+    <View className="flex-1 bg-background-light dark:bg-background-dark">
+      <View className="bg-purple-700 pt-12 pb-6 px-6 rounded-b-[40px] shadow-lg">
+        <View className="flex-row items-center justify-between mb-4">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="w-10 h-10 bg-purple-600 rounded-full items-center justify-center"
+          >
+            <Feather name="arrow-left" size={20} color="#fff" />
+          </TouchableOpacity>
+          <Text className="text-white font-bold text-xl">Colaboradores</Text>
+          <View className="w-10" />
+        </View>
+
+        <View className="bg-white/10 dark:bg-black/20 flex-row items-center px-4 rounded-2xl border border-white/20 h-12 mb-2">
+          <Feather name="search" size={18} color="#E9D5FF" />
+          <TextInput
+            placeholder="Buscar por nome ou e-mail..."
+            value={search}
+            onChangeText={setSearch}
+            placeholderTextColor="#E9D5FF"
+            className="flex-1 ml-3 text-white font-medium"
+          />
+          {search !== "" && (
+            <TouchableOpacity onPress={() => setSearch("")}>
+              <Feather name="x" size={16} color="#FFF" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      <View className="flex-1 px-6 -mt-4">
+      <View className="py-4">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 24 }}
+        >
+          <FilterChip
+            label="Todos"
+            active={statusFilter === "ALL" && roleFilter === "ALL"}
+            onPress={() => {
+              setStatusFilter("ALL");
+              setRoleFilter("ALL");
+            }}
+          />
+          <FilterChip
+            label="Ativos"
+            active={statusFilter === "ACTIVE"}
+            onPress={() => setStatusFilter("ACTIVE")}
+            icon="user-check"
+          />
+          <FilterChip
+            label="Inativos"
+            active={statusFilter === "DISABLED"}
+            onPress={() => setStatusFilter("DISABLED")}
+            icon="user-x"
+          />
+          <View className="w-[1px] h-6 bg-gray-200 dark:bg-gray-800 mx-2 self-center" />
+          <FilterChip
+            label="Gestores"
+            active={roleFilter === "GESTOR"}
+            onPress={() => setRoleFilter("GESTOR")}
+          />
+          <FilterChip
+            label="Colab."
+            active={roleFilter === "COLABORADOR"}
+            onPress={() => setRoleFilter("COLABORADOR")}
+          />
+        </ScrollView>
+      </View>
+
+      <View className="flex-1 px-6">
         {loading ? (
           <ActivityIndicator size="large" color="#9333EA" className="mt-20" />
         ) : (
           <FlatList
-            data={users}
+            data={filteredUsers}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
-            contentContainerStyle={{ paddingTop: 24, paddingBottom: 40 }}
+            contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={() => (
+              <View className="items-center mt-20 opacity-40">
+                <Feather
+                  name="search"
+                  size={48}
+                  color={isDark ? "#4B5563" : "#9CA3AF"}
+                />
+                <Text className="text-gray-500 dark:text-gray-400 mt-4 font-bold text-center">
+                  Nenhum resultado encontrado
+                </Text>
+              </View>
+            )}
           />
         )}
       </View>

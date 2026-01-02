@@ -52,6 +52,16 @@ export const managerService = {
     return querySnapshot.docs.map(mapDocument);
   },
 
+  async getManagerHistory(managerId: string): Promise<VacationRequest[]> {
+    const q = query(
+      collection(db, "vacations"),
+      where("managedBy", "==", managerId),
+      orderBy("updatedAt", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(mapDocument);
+  },
+
   async updateStatus(
     requestId: string,
     status: VacationStatus,

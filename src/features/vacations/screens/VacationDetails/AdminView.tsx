@@ -46,7 +46,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
       : "text-amber-700 bg-amber-50 border-amber-100";
 
   return (
-    <View className="flex-1 relative overflow-hidden bg-gray-50">
+    <View className="flex-1 relative overflow-hidden bg-background-light dark:bg-background-dark">
       <View
         className="absolute bottom-[-20] right-[-50] opacity-5"
         style={{ zIndex: -1 }}
@@ -65,7 +65,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
         showsVerticalScrollIndicator={false}
         className="flex-1"
       >
-        <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex-row items-center">
+        <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex-row items-center">
           <View className="mr-4">
             <Avatar
               name={request.userName}
@@ -77,7 +77,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
             <Text className="text-gray-400 text-xs font-bold uppercase">
               Colaborador
             </Text>
-            <Text className="text-gray-800 font-bold text-xl">
+            <Text className="text-gray-800 dark:text-gray-100 font-bold text-xl">
               {formatShortName(request.userName)}
             </Text>
 
@@ -90,9 +90,11 @@ export function AdminView({ request }: { request: VacationRequest }) {
           </View>
         </View>
 
-        <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+        <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
           <View className="flex-row justify-between mb-4">
-            <Text className="text-gray-800 font-bold">Período Solicitado</Text>
+            <Text className="text-gray-800 dark:text-gray-100 font-bold">
+              Período Solicitado
+            </Text>
 
             <View className="bg-purple-50 px-3 py-1 rounded-full">
               <Text className="text-purple-600 text-xs font-bold">
@@ -103,14 +105,14 @@ export function AdminView({ request }: { request: VacationRequest }) {
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-gray-400 text-xs mb-1">DE</Text>
-              <Text className="text-gray-800 font-medium text-base">
+              <Text className="text-gray-800 dark:text-gray-100 font-medium text-base">
                 {formatDate(request.startDate)}
               </Text>
             </View>
             <Feather name="arrow-right" size={20} color="#9CA3AF" />
             <View>
               <Text className="text-gray-400 text-xs mb-1">ATÉ</Text>
-              <Text className="text-gray-800 font-medium text-base">
+              <Text className="text-gray-800 dark:text-gray-100 font-medium text-base">
                 {formatDate(request.endDate)}
               </Text>
             </View>
@@ -132,7 +134,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
               </View>
             </View>
 
-            <View className="bg-white p-5 rounded-2xl border border-gray-200">
+            <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl border border-gray-200">
               <Text
                 className="text-gray-600 leading-relaxed italic"
                 numberOfLines={isExpanded ? undefined : 3}
@@ -173,7 +175,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
                     ? "aprovada ✅"
                     : "reprovada ❌"}
                   {"\n"}
-                  <Text className="text-gray-500 text-sm font-medium">
+                  <Text className="text-gray-500 dark:text-gray-400 text-sm font-medium">
                     por {formatShortName(request.managerName || "Gestor")}
                   </Text>
                   {formattedUpdateDate && (

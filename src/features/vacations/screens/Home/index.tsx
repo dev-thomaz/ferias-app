@@ -6,11 +6,13 @@ import { Dialog } from "@/components/Dialog";
 import { ManagerHome } from "./ManagerHome";
 import { EmployeeHome } from "./EmployeeHome";
 import { AdminHome } from "@/features/admin/screens/AdminHome";
+import { colorScheme, useColorScheme } from "nativewind";
 
 export function HomeScreen() {
   const { user, logout } = useAuthStore();
   const [logoutDialog, setLogoutDialog] = useState(false);
-
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
   const handleLogoutPress = () => {
     setLogoutDialog(true);
   };
@@ -37,9 +39,13 @@ export function HomeScreen() {
   };
 
   return (
-    <View className={`flex-1 bg-gray-50 ${isAdmin ? "" : "pt-12"}`}>
+    <View
+      className={`flex-1 bg-background-light dark:bg-background-dark ${
+        isAdmin ? "" : "pt-12"
+      }`}
+    >
       <StatusBar
-        barStyle={isAdmin ? "light-content" : "dark-content"}
+        barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor="transparent"
         translucent
       />

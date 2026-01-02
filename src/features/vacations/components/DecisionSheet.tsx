@@ -50,17 +50,17 @@ export function DecisionSheet({
           <TouchableWithoutFeedback>
             <Animated.View
               style={{ transform: [{ translateY: slideAnim }] }}
-              className="bg-white rounded-t-3xl p-6 pb-10 shadow-2xl"
+              className="bg-surface-light dark:bg-surface-dark rounded-t-3xl p-6 pb-10 shadow-2xl"
             >
               <View className="items-center mb-6">
                 <View className="w-12 h-1.5 bg-gray-200 rounded-full" />
               </View>
 
-              <Text className="text-xl font-bold text-gray-800 text-center mb-2">
+              <Text className="text-xl font-bold text-gray-800 dark:text-gray-100 text-center mb-2">
                 Analisar Solicitação
               </Text>
 
-              <Text className="text-gray-500 text-center mb-8 px-8">
+              <Text className="text-gray-500 dark:text-gray-400 text-center mb-8 px-8">
                 O que você deseja fazer com a solicitação de{" "}
                 <Text className="font-bold text-gray-700">{userName}</Text>?
               </Text>

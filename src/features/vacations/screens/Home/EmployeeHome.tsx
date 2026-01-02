@@ -11,6 +11,7 @@ import {
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 import {
   parseISO,
   isFuture,
@@ -45,6 +46,8 @@ type FilterType = "ALL" | VacationStatus;
 
 export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
   const navigation = useNavigation<EmployeeNavigationProp>();
+  const { colorScheme, toggleColorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const [data, setData] = useState<VacationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +117,6 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
     if (upcomingVacation) {
       const startDate = startOfDay(parseISO(upcomingVacation.startDate));
       const today = startOfDay(new Date());
-
       const daysLeft = differenceInDays(startDate, today);
 
       if (daysLeft <= 0) {
@@ -126,7 +128,6 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
           isText: true,
         };
       }
-
       if (daysLeft === 1) {
         return {
           topLabel: "Prepare as malas!",
@@ -136,7 +137,6 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
           isText: true,
         };
       }
-
       return {
         topLabel: "Contagem Regressiva",
         mainValue: daysLeft,
@@ -174,12 +174,14 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
           className={`mr-3 px-4 py-2 rounded-full border ${
             activeFilter === tab.id
               ? "bg-emerald-600 border-emerald-600"
-              : "bg-white border-gray-200"
+              : "bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-800"
           }`}
         >
           <Text
             className={`font-bold text-xs ${
-              activeFilter === tab.id ? "text-white" : "text-gray-600"
+              activeFilter === tab.id
+                ? "text-white"
+                : "text-gray-600 dark:text-gray-400"
             }`}
           >
             {tab.label}
@@ -193,35 +195,50 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
     <View className="mb-2">
       <View className="flex-row justify-between items-center mb-6 mt-2 px-6">
         <View className="flex-row items-center flex-1">
-          <View className="bg-white p-1 rounded-full shadow-sm mr-4 border border-gray-100">
+          <View className="bg-surface-light dark:bg-surface-dark p-1 rounded-full shadow-sm mr-4 border border-gray-100 dark:border-gray-800">
             <Avatar name={user.name} avatarId={user.avatarID} size="lg" />
           </View>
-          <View>
-            <View className="self-start px-3 py-1 rounded-md mb-1.5 flex-row items-center bg-emerald-100">
+          <View className="flex-1">
+            <View className="self-start px-3 py-1 rounded-md mb-1.5 flex-row items-center bg-emerald-100 dark:bg-emerald-900/30">
               <Feather
                 name="user"
                 size={12}
                 color="#047857"
                 style={{ marginRight: 6 }}
               />
-              <Text className="text-xs font-bold uppercase tracking-wide text-emerald-700">
+              <Text className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                 Colaborador
               </Text>
             </View>
             <Text className="text-gray-400 font-medium text-sm">
               Bem-vindo(a),
             </Text>
-            <Text className="text-2xl font-bold text-gray-800 leading-tight">
+            <Text
+              className="text-2xl font-bold text-gray-800 dark:text-gray-100 leading-tight"
+              numberOfLines={1}
+            >
               {formatShortName(user.name)}
             </Text>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={onLogout}
-          className="bg-white p-3.5 rounded-full border border-gray-100 shadow-sm active:bg-gray-50"
-        >
-          <Feather name="log-out" size={22} color="#EF4444" />
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-x-2">
+          <TouchableOpacity
+            onPress={toggleColorScheme}
+            className="bg-surface-light dark:bg-surface-dark p-3.5 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+          >
+            <Feather
+              name={isDark ? "sun" : "moon"}
+              size={22}
+              color={isDark ? "#FBBF24" : "#6B7280"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onLogout}
+            className="bg-surface-light dark:bg-surface-dark p-3.5 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+          >
+            <Feather name="log-out" size={22} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View className="mx-6 p-6 rounded-3xl bg-emerald-600 shadow-lg shadow-emerald-500/30 mb-6">
@@ -247,59 +264,49 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
         </Text>
       </View>
 
-      <Text className="text-lg font-bold text-gray-800 mb-4 px-6">
+      <Text className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4 px-6">
         Histórico de Solicitações
       </Text>
-
       <FilterTabs />
     </View>
   );
 
   return (
-    <View className="flex-1">
-      {loading && data.length === 0 ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#059669" />
-        </View>
-      ) : (
-        <FlatList
-          data={filteredData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="px-6">
-              <VacationCard
-                item={item}
-                onPress={() =>
-                  navigation.navigate("VacationDetails", { request: item })
-                }
-              />
-            </View>
-          )}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          ListHeaderComponent={ListHeader}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={loading} onRefresh={loadData} />
-          }
-          ListEmptyComponent={
-            <View className="items-center justify-center py-12 opacity-50 px-6">
-              <Feather
-                name={activeFilter === "ALL" ? "clipboard" : "filter"}
-                size={48}
-                color="#9CA3AF"
-              />
-              <Text className="text-gray-400 text-center mt-4 font-medium leading-relaxed">
-                {activeFilter === "ALL"
-                  ? "Você ainda não tem\nsolicitações registradas."
-                  : `Nenhuma solicitação encontrada\nno filtro "${translateStatusFilter(
-                      activeFilter
-                    )}".`}
-              </Text>
-            </View>
-          }
-        />
-      )}
-
+    <View className="flex-1 bg-background-light dark:bg-background-dark">
+      <FlatList
+        data={filteredData}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View className="px-6">
+            <VacationCard
+              item={item}
+              onPress={() =>
+                navigation.navigate("VacationDetails", { request: item })
+              }
+            />
+          </View>
+        )}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        ListHeaderComponent={ListHeader}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={loadData} />
+        }
+        ListEmptyComponent={
+          <View className="items-center justify-center py-12 opacity-50 px-6">
+            <Feather
+              name={activeFilter === "ALL" ? "clipboard" : "filter"}
+              size={48}
+              color="#9CA3AF"
+            />
+            <Text className="text-gray-400 text-center mt-4 font-medium leading-relaxed">
+              {activeFilter === "ALL"
+                ? "Você ainda não tem\nsolicitações registradas."
+                : `Nenhuma solicitação encontrada no filtro.`}
+            </Text>
+          </View>
+        }
+      />
       {!hasPendingRequest && !loading && (
         <View className="absolute bottom-8 right-6 shadow-xl shadow-emerald-500/40">
           <TouchableOpacity
@@ -314,7 +321,6 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
           </TouchableOpacity>
         </View>
       )}
-
       <Dialog
         visible={dialog.visible}
         title={dialog.title}

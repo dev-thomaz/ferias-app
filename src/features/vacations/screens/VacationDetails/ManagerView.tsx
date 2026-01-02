@@ -9,6 +9,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { parseISO, differenceInDays } from "date-fns";
+import { useColorScheme } from "nativewind";
 
 import { managerService } from "../../services/managerService";
 import { VacationRequest } from "../../types";
@@ -27,6 +28,9 @@ export function ManagerView({
   user: any;
 }) {
   const navigation = useNavigation();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const [confirmSheetVisible, setConfirmSheetVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [actionType, setActionType] = useState<"APPROVE" | "REJECT">("APPROVE");
@@ -40,6 +44,8 @@ export function ManagerView({
   });
 
   const isPending = request.status === "PENDING";
+  const isApproved =
+    request.status === "APPROVED" || (request.status as string) === "COMPLETED";
 
   const duration = useMemo(
     () =>
@@ -60,7 +66,6 @@ export function ManagerView({
     setLoading(true);
     try {
       const status = actionType === "APPROVE" ? "APPROVED" : "REJECTED";
-
       const safeAvatarId =
         user?.avatarID ?? user?.avatarId ?? user?.avatar ?? null;
 
@@ -83,8 +88,6 @@ export function ManagerView({
         variant: "success",
       });
     } catch (e: any) {
-      console.error("ERRO AO ATUALIZAR STATUS:", e);
-
       setDialog({
         visible: true,
         title: "Erro na Operação",
@@ -98,7 +101,7 @@ export function ManagerView({
   };
 
   return (
-    <View className="flex-1 relative overflow-hidden bg-gray-50">
+    <View className="flex-1 relative overflow-hidden bg-background-light dark:bg-background-dark">
       <View
         className="absolute bottom-[-20] right-[-50] opacity-5"
         style={{ zIndex: -1 }}
@@ -107,7 +110,7 @@ export function ManagerView({
         <Feather
           name="calendar"
           size={300}
-          color="#000"
+          color={isDark ? "#FFF" : "#000"}
           style={{ transform: [{ rotate: "-15deg" }] }}
         />
       </View>
@@ -117,7 +120,7 @@ export function ManagerView({
         showsVerticalScrollIndicator={false}
         className="flex-1"
       >
-        <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex-row items-center">
+        <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 flex-row items-center">
           <View className="mr-4">
             <Avatar
               name={request.userName}
@@ -126,42 +129,55 @@ export function ManagerView({
             />
           </View>
           <View className="flex-1">
-            <Text className="text-gray-400 text-xs font-bold uppercase">
+            <Text className="text-gray-400 dark:text-gray-500 text-xs font-bold uppercase">
               Solicitante
             </Text>
-            <Text className="text-gray-800 font-bold text-xl">
+            <Text className="text-gray-800 dark:text-gray-100 font-bold text-xl">
               {formatShortName(request.userName)}
             </Text>
-
             <View className="flex-row items-center mt-1">
-              <Feather name="clock" size={12} color="#9CA3AF" />
-              <Text className="text-gray-400 text-xs ml-1 font-medium">
+              <Feather
+                name="clock"
+                size={12}
+                color={isDark ? "#6B7280" : "#9CA3AF"}
+              />
+              <Text className="text-gray-400 dark:text-gray-500 text-xs ml-1 font-medium">
                 Solicitado em {formattedCreationDate}
               </Text>
             </View>
           </View>
         </View>
 
-        <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+        <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
           <View className="flex-row justify-between mb-4">
-            <Text className="text-gray-800 font-bold">Período Solicitado</Text>
-            <View className="bg-blue-50 px-3 py-1 rounded-full">
-              <Text className="text-blue-600 text-xs font-bold">
+            <Text className="text-gray-800 dark:text-gray-100 font-bold">
+              Período Solicitado
+            </Text>
+            <View className="bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+              <Text className="text-blue-600 dark:text-blue-400 text-xs font-bold">
                 {duration} dias
               </Text>
             </View>
           </View>
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-gray-400 text-xs mb-1">DE</Text>
-              <Text className="text-gray-800 font-medium text-base">
+              <Text className="text-gray-400 dark:text-gray-500 text-xs mb-1 uppercase font-bold">
+                De
+              </Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium text-base">
                 {formatDate(request.startDate)}
               </Text>
             </View>
-            <Feather name="arrow-right" size={20} color="#9CA3AF" />
+            <Feather
+              name="arrow-right"
+              size={20}
+              color={isDark ? "#4B5563" : "#9CA3AF"}
+            />
             <View>
-              <Text className="text-gray-400 text-xs mb-1">ATÉ</Text>
-              <Text className="text-gray-800 font-medium text-base">
+              <Text className="text-gray-400 dark:text-gray-500 text-xs mb-1 uppercase font-bold">
+                Até
+              </Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium text-base">
                 {formatDate(request.endDate)}
               </Text>
             </View>
@@ -171,33 +187,24 @@ export function ManagerView({
         <View className="mb-6">
           <TouchableOpacity onPress={toggleAccordion} activeOpacity={0.7}>
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-gray-700 font-bold ml-1">
+              <Text className="text-gray-700 dark:text-gray-200 font-bold ml-1">
                 Observação do Colaborador
               </Text>
-              <View className="bg-gray-100 p-1 rounded-full">
+              <View className="bg-gray-100 dark:bg-gray-800 p-1 rounded-full">
                 <Feather
                   name={isExpanded ? "chevron-up" : "chevron-down"}
                   size={20}
-                  color="#6B7280"
+                  color={isDark ? "#9CA3AF" : "#6B7280"}
                 />
               </View>
             </View>
-
-            <View className="bg-white p-5 rounded-2xl border border-gray-200">
+            <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl border border-gray-200 dark:border-gray-800">
               <Text
-                className="text-gray-600 leading-relaxed italic"
+                className="text-gray-600 dark:text-gray-400 leading-relaxed italic"
                 numberOfLines={isExpanded ? undefined : 3}
               >
                 {request.observation || "Nenhuma observação informada."}
               </Text>
-
-              {!isExpanded &&
-                request.observation &&
-                request.observation.length > 100 && (
-                  <Text className="text-blue-500 text-xs mt-2 font-bold">
-                    Ver mais...
-                  </Text>
-                )}
             </View>
           </TouchableOpacity>
         </View>
@@ -210,40 +217,35 @@ export function ManagerView({
                 avatarId={request.managerAvatarId}
                 size="lg"
               />
-
               <View className="ml-4 flex-1 justify-center">
                 <Text
                   className={`font-bold text-base leading-tight ${
-                    request.status === "APPROVED"
-                      ? "text-emerald-700"
-                      : "text-rose-700"
+                    isApproved
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-rose-700 dark:text-rose-400"
                   }`}
                 >
-                  Solicitação{" "}
-                  {request.status === "APPROVED"
-                    ? "aprovada ✅"
-                    : "reprovada ❌"}
+                  Solicitação {isApproved ? "aprovada ✅" : "reprovada ❌"}
                   {"\n"}
-                  <Text className="text-gray-500 text-sm font-medium">
+                  <Text className="text-gray-500 dark:text-gray-400 text-sm font-medium">
                     por {formatShortName(request.managerName || "Gestor")}
                   </Text>
                 </Text>
               </View>
             </View>
-
             {request.managerObservation && (
               <View
                 className={`p-5 rounded-2xl border ${
-                  request.status === "APPROVED"
-                    ? "bg-emerald-50 border-emerald-100"
-                    : "bg-rose-50 border-rose-100"
+                  isApproved
+                    ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800"
+                    : "bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800"
                 }`}
               >
                 <Text
                   className={`leading-relaxed italic ${
-                    request.status === "APPROVED"
-                      ? "text-emerald-900"
-                      : "text-rose-900"
+                    isApproved
+                      ? "text-emerald-900 dark:text-emerald-200"
+                      : "text-rose-900 dark:text-rose-200"
                   }`}
                 >
                   "{request.managerObservation}"
@@ -255,28 +257,32 @@ export function ManagerView({
       </ScrollView>
 
       {isPending && (
-        <View className="absolute bottom-0 left-0 right-0 bg-white p-6 pt-4 border-t border-gray-100 shadow-2xl">
-          <Text className="text-center text-gray-400 text-xs mb-3 font-medium">
+        <View className="absolute bottom-0 left-0 right-0 bg-surface-light dark:bg-surface-dark p-6 pt-4 border-t border-gray-100 dark:border-gray-800 shadow-2xl">
+          <Text className="text-center text-gray-400 dark:text-gray-500 text-xs mb-3 font-bold uppercase tracking-widest">
             Selecione uma ação
           </Text>
           <View className="flex-row gap-4">
             <TouchableOpacity
-              className="flex-1 bg-rose-50 border border-rose-100 py-4 rounded-xl items-center"
+              className="flex-1 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 py-4 rounded-xl items-center"
               onPress={() => {
                 setActionType("REJECT");
                 setConfirmSheetVisible(true);
               }}
             >
-              <Text className="text-rose-600 font-bold">Reprovar ❌</Text>
+              <Text className="text-rose-600 dark:text-rose-400 font-bold uppercase text-xs">
+                Reprovar ❌
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="flex-1 bg-emerald-600 py-4 rounded-xl items-center shadow-lg shadow-emerald-200"
+              className="flex-1 bg-emerald-600 py-4 rounded-xl items-center shadow-lg shadow-emerald-500/20"
               onPress={() => {
                 setActionType("APPROVE");
                 setConfirmSheetVisible(true);
               }}
             >
-              <Text className="text-white font-bold">Aprovar ✅</Text>
+              <Text className="text-white font-bold uppercase text-xs">
+                Aprovar ✅
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

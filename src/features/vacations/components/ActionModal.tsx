@@ -62,19 +62,21 @@ export function ActionModal({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1 bg-black/60 justify-center items-center p-6"
       >
-        <View className="bg-white w-full rounded-3xl p-6 shadow-xl">
+        <View className="bg-surface-light dark:bg-surface-dark w-full rounded-3xl p-6 shadow-xl">
           <Text className={`text-2xl font-bold mb-2 text-center ${colorText}`}>
             {title}
           </Text>
 
-          <Text className="text-gray-500 mb-6 text-center">{description}</Text>
+          <Text className="text-gray-500 dark:text-gray-400 mb-6 text-center">
+            {description}
+          </Text>
 
           <Text className="text-xs font-bold text-gray-400 uppercase mb-2 ml-1">
             {label}
           </Text>
 
           <TextInput
-            className="bg-gray-50 p-4 rounded-xl border border-gray-200 h-28 mb-6 text-gray-800"
+            className="bg-background-light dark:bg-background-dark p-4 rounded-xl border border-gray-200 h-28 mb-6 text-gray-800 dark:text-gray-100"
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
             multiline

@@ -55,7 +55,7 @@ export function ConfirmationSheet({
           <TouchableWithoutFeedback>
             <Animated.View
               style={{ transform: [{ translateY: slideAnim }] }}
-              className="bg-white rounded-t-3xl p-6 pb-10 shadow-2xl"
+              className="bg-surface-light dark:bg-surface-dark rounded-t-3xl p-6 pb-10 shadow-2xl"
             >
               <View className="items-center mb-6">
                 <View className="w-12 h-1.5 bg-gray-200 rounded-full" />
@@ -76,7 +76,7 @@ export function ConfirmationSheet({
                 <Text className={`text-2xl font-bold ${colorClass} mb-2`}>
                   {title}
                 </Text>
-                <Text className="text-gray-500 text-center px-4 leading-6">
+                <Text className="text-gray-500 dark:text-gray-400 text-center px-4 leading-6">
                   Essa ação notificará o colaborador imediatamente e{" "}
                   <Text className="font-bold text-gray-700">
                     não poderá ser desfeita
@@ -100,7 +100,7 @@ export function ConfirmationSheet({
                   onPress={onClose}
                   className="p-4 rounded-xl items-center"
                 >
-                  <Text className="text-gray-500 font-bold text-base">
+                  <Text className="text-gray-500 dark:text-gray-400 font-bold text-base">
                     Cancelar
                   </Text>
                 </TouchableOpacity>

@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-
   content: ["./App.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -10,8 +10,15 @@ module.exports = {
         secondary: '#475569',
         success: '#16A34A',
         danger: '#DC2626',
-        background: '#F8FAFC',
-        surface: '#FFFFFF',
+
+        background: {
+          light: '#F8FAFC',
+          dark: '#0F172A',
+        },
+        surface: {
+          light: '#FFFFFF',
+          dark: '#1E293B',
+        },
       }
     },
   },

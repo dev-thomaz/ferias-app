@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 
 import { VacationRequest } from "../types";
 import { formatDate } from "@/utils/dateUtils";
@@ -12,42 +13,52 @@ interface VacationCardProps {
 }
 
 export function VacationCard({ item, onPress }: VacationCardProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const statusConfig = {
     PENDING: {
       label: "Pendente",
-      bg: "bg-amber-100",
-      text: "text-amber-700",
-      border: "border-amber-200",
-      iconColor: "#B45309",
+      bg: isDark ? "bg-amber-900/20" : "bg-amber-100",
+      text: isDark ? "text-amber-400" : "text-amber-700",
+      border: isDark ? "border-amber-900/30" : "border-amber-200",
+      iconColor: isDark ? "#fbbf24" : "#B45309",
     },
     APPROVED: {
       label: "Aprovado",
-      bg: "bg-emerald-100",
-      text: "text-emerald-700",
-      border: "border-emerald-200",
-      iconColor: "#047857",
+      bg: isDark ? "bg-emerald-900/20" : "bg-emerald-100",
+      text: isDark ? "text-emerald-400" : "text-emerald-700",
+      border: isDark ? "border-emerald-900/30" : "border-emerald-200",
+      iconColor: isDark ? "#34d399" : "#047857",
+    },
+    COMPLETED: {
+      label: "Concluído",
+      bg: isDark ? "bg-blue-900/20" : "bg-blue-100",
+      text: isDark ? "text-blue-400" : "text-blue-700",
+      border: isDark ? "border-blue-900/30" : "border-blue-200",
+      iconColor: isDark ? "#60a5fa" : "#1D4ED8",
     },
     REJECTED: {
       label: "Reprovado",
-      bg: "bg-rose-100",
-      text: "text-rose-700",
-      border: "border-rose-200",
-      iconColor: "#BE123C",
+      bg: isDark ? "bg-rose-900/20" : "bg-rose-100",
+      text: isDark ? "text-rose-400" : "text-rose-700",
+      border: isDark ? "border-rose-900/30" : "border-rose-200",
+      iconColor: isDark ? "#fb7185" : "#BE123C",
     },
   };
 
-  const theme = statusConfig[item.status] || statusConfig.PENDING;
+  const theme = (statusConfig as any)[item.status] || statusConfig.PENDING;
   const isPending = item.status === "PENDING";
 
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      className="bg-white p-5 rounded-2xl mb-4 border border-gray-100 shadow-sm"
+      className="bg-surface-light dark:bg-surface-dark p-5 rounded-3xl mb-4 border border-gray-100 dark:border-gray-800 shadow-sm"
     >
-      <View className="flex-row justify-between items-start mb-3">
+      <View className="flex-row justify-between items-start mb-4">
         <Text
-          className="font-bold text-secondary text-lg flex-1 mr-2"
+          className="font-bold text-gray-800 dark:text-gray-100 text-lg flex-1 mr-2"
           numberOfLines={1}
         >
           {formatShortName(item.userName)}
@@ -56,41 +67,54 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
         <View
           className={`px-3 py-1 rounded-full border ${theme.bg} ${theme.border}`}
         >
-          <Text className={`text-xs font-bold ${theme.text}`}>
+          <Text
+            className={`text-[10px] font-black uppercase tracking-wider ${theme.text}`}
+          >
             {theme.label}
           </Text>
         </View>
       </View>
 
-      <View className="flex-row items-center mb-3">
-        <View className="bg-gray-50 p-2 rounded-lg mr-3">
-          <Feather name="calendar" size={18} color="#6B7280" />
+      <View className="flex-row items-center mb-4">
+        <View className="bg-background-light dark:bg-background-dark p-2.5 rounded-xl mr-3 border border-gray-50 dark:border-gray-800">
+          <Feather
+            name="calendar"
+            size={18}
+            color={isDark ? "#93C5FD" : "#6B7280"}
+          />
         </View>
-        <Text className="text-gray-600 font-medium text-base">
-          {formatDate(item.startDate)}{" "}
-          <Text className="text-gray-400 text-xs">até</Text>{" "}
-          {formatDate(item.endDate)}
-        </Text>
+        <View>
+          <Text className="text-gray-600 dark:text-gray-300 font-bold text-base">
+            {formatDate(item.startDate)}{" "}
+            <Text className="text-gray-400 dark:text-gray-500 font-normal text-xs italic">
+              até
+            </Text>{" "}
+            {formatDate(item.endDate)}
+          </Text>
+        </View>
       </View>
 
-      {item.observation && (
-        <View className="mb-3">
+      {item.observation ? (
+        <View className="mb-4 bg-gray-50 dark:bg-background-dark/30 p-3 rounded-xl border-l-4 border-gray-200 dark:border-gray-700">
           <Text
-            className="text-gray-500 text-sm italic leading-5"
+            className="text-gray-500 dark:text-gray-400 text-xs italic leading-5"
             numberOfLines={2}
-            ellipsizeMode="tail"
           >
             "{item.observation}"
           </Text>
         </View>
-      )}
+      ) : null}
 
-      <View className="flex-row justify-between items-end mt-2 pt-3 border-t border-gray-100">
+      <View className="flex-row justify-between items-center mt-2 pt-4 border-t border-gray-100 dark:border-gray-800">
         <View className="flex-1 mr-4">
           <View className="flex-row items-center mb-1">
-            <Feather name="clock" size={10} color="#9CA3AF" />
-            <Text className="text-gray-400 text-[10px] ml-1">
-              Solicitado: {formatDate(item.createdAt, "dd/MM 'às' HH:mm")}
+            <Feather
+              name="clock"
+              size={10}
+              color={isDark ? "#6B7280" : "#9CA3AF"}
+            />
+            <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1 uppercase font-medium">
+              Criado: {formatDate(item.createdAt, "dd/MM HH:mm")}
             </Text>
           </View>
 
@@ -99,18 +123,24 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
               <Feather
                 name="check-circle"
                 size={10}
-                color={item.status === "APPROVED" ? "#059669" : "#E11D48"}
+                color={
+                  item.status === "APPROVED" || item.status === "COMPLETED"
+                    ? "#10b981"
+                    : "#ef4444"
+                }
               />
-              <Text className="text-gray-400 text-[10px] ml-1">
-                Respondido: {formatDate(item.updatedAt, "dd/MM 'às' HH:mm")}
+              <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1 uppercase font-medium">
+                Análise: {formatDate(item.updatedAt, "dd/MM HH:mm")}
               </Text>
             </View>
           )}
         </View>
 
-        <View className="flex-row items-center mb-0.5">
-          <Text className={`text-xs font-bold mr-1 ${theme.text}`}>
-            Ver detalhes
+        <View className="flex-row items-center">
+          <Text
+            className={`text-xs font-black uppercase tracking-tighter mr-1 ${theme.text}`}
+          >
+            Detalhes
           </Text>
           <Feather name="chevron-right" size={16} color={theme.iconColor} />
         </View>

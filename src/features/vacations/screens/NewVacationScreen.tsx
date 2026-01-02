@@ -12,18 +12,20 @@ import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { addDays, differenceInDays } from "date-fns";
 import { Feather } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { vacationService } from "../services/vacationService";
 import { CreateVacationDTO } from "../types";
 import { Button } from "@/components/Button";
 import { formatDate } from "@/utils/dateUtils";
-
 import { Dialog, DialogVariant } from "@/components/Dialog";
 
 export function NewVacationScreen() {
   const navigation = useNavigation();
   const { user } = useAuthStore();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(addDays(new Date(), 15));
@@ -74,9 +76,7 @@ export function NewVacationScreen() {
       const requestData: CreateVacationDTO = {
         userId: user.id,
         userName: user.name,
-
         userAvatarId: safeUserAvatarId,
-
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         observation: observation.trim(),
@@ -95,14 +95,10 @@ export function NewVacationScreen() {
         },
       });
     } catch (error: any) {
-      console.error("Erro ao criar solicitação:", error);
-
       setDialog({
         visible: true,
         title: "Ops, algo deu errado",
-        message:
-          error?.message ||
-          "Não foi possível criar a solicitação. Tente novamente mais tarde.",
+        message: error?.message || "Não foi possível criar a solicitação.",
         variant: "error",
         onConfirm: closeDialog,
       });
@@ -129,21 +125,25 @@ export function NewVacationScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50 relative">
+    <View className="flex-1 bg-background-light dark:bg-background-dark relative">
       <StatusBar
-        barStyle="dark-content"
+        barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor="transparent"
         translucent
       />
 
-      <View className="pt-12 px-6 pb-4 bg-white shadow-sm border-b border-gray-100 z-10 flex-row items-center">
+      <View className="pt-12 px-6 pb-4 bg-surface-light dark:bg-surface-dark shadow-sm border-b border-gray-100 dark:border-gray-800 z-10 flex-row items-center">
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          className="p-2 -ml-2 rounded-full active:bg-gray-100"
+          className="p-2 -ml-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800"
         >
-          <Feather name="arrow-left" size={24} color="#374151" />
+          <Feather
+            name="arrow-left"
+            size={24}
+            color={isDark ? "#F3F4F6" : "#374151"}
+          />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-800 ml-2">
+        <Text className="text-xl font-bold text-gray-800 dark:text-gray-100 ml-2">
           Agendar Férias
         </Text>
       </View>
@@ -152,22 +152,32 @@ export function NewVacationScreen() {
         contentContainerStyle={{ padding: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <Text className="text-gray-500 mb-8 leading-relaxed">
+        <Text className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
           Informe o período desejado. O sistema notificará seu gestor
           automaticamente.
         </Text>
 
-        <View className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+        <View className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-gray-700 font-bold text-base">Período</Text>
+            <Text className="text-gray-700 dark:text-gray-200 font-bold text-base">
+              Período
+            </Text>
             <View
               className={`px-3 py-1 rounded-full ${
-                duration > 0 ? "bg-blue-50" : "bg-rose-50"
+                duration > 0
+                  ? isDark
+                    ? "bg-blue-900/30"
+                    : "bg-blue-50"
+                  : isDark
+                  ? "bg-rose-900/30"
+                  : "bg-rose-50"
               }`}
             >
               <Text
                 className={`text-xs font-bold ${
-                  duration > 0 ? "text-blue-600" : "text-rose-600"
+                  duration > 0
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-rose-600 dark:text-rose-400"
                 }`}
               >
                 {duration > 0
@@ -184,15 +194,15 @@ export function NewVacationScreen() {
               </Text>
               <TouchableOpacity
                 onPress={() => setShowStartPicker(true)}
-                className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex-row items-center"
+                className="bg-background-light dark:bg-background-dark p-3 rounded-xl border border-gray-200 dark:border-gray-700 flex-row items-center"
               >
                 <Feather
                   name="calendar"
                   size={18}
-                  color="#6B7280"
+                  color={isDark ? "#93C5FD" : "#6B7280"}
                   style={{ marginRight: 8 }}
                 />
-                <Text className="text-gray-800 font-medium text-sm">
+                <Text className="text-gray-800 dark:text-gray-100 font-medium text-sm">
                   {formatDate(startDate)}
                 </Text>
               </TouchableOpacity>
@@ -204,21 +214,27 @@ export function NewVacationScreen() {
               </Text>
               <TouchableOpacity
                 onPress={() => setShowEndPicker(true)}
-                className={`bg-gray-50 p-3 rounded-xl border flex-row items-center ${
+                className={`bg-background-light dark:bg-background-dark p-3 rounded-xl border flex-row items-center ${
                   duration <= 0
-                    ? "border-rose-300 bg-rose-50"
-                    : "border-gray-200"
+                    ? isDark
+                      ? "border-rose-800 bg-rose-900/10"
+                      : "border-rose-300 bg-rose-50"
+                    : "border-gray-200 dark:border-gray-700"
                 }`}
               >
                 <Feather
                   name="calendar"
                   size={18}
-                  color={duration <= 0 ? "#E11D48" : "#6B7280"}
+                  color={
+                    duration <= 0 ? "#E11D48" : isDark ? "#93C5FD" : "#6B7280"
+                  }
                   style={{ marginRight: 8 }}
                 />
                 <Text
                   className={`font-medium text-sm ${
-                    duration <= 0 ? "text-rose-700" : "text-gray-800"
+                    duration <= 0
+                      ? "text-rose-700 dark:text-rose-400"
+                      : "text-gray-800 dark:text-gray-100"
                   }`}
                 >
                   {formatDate(endDate)}
@@ -229,13 +245,13 @@ export function NewVacationScreen() {
         </View>
 
         <View className="mb-8">
-          <Text className="text-gray-700 font-bold mb-2 ml-1">
+          <Text className="text-gray-700 dark:text-gray-200 font-bold mb-2 ml-1">
             Observação (Opcional)
           </Text>
           <TextInput
-            className="bg-white p-4 rounded-2xl border border-gray-200 h-32 text-gray-700 shadow-sm"
+            className="bg-surface-light dark:bg-surface-dark p-4 rounded-2xl border border-gray-200 dark:border-gray-700 h-32 text-gray-700 dark:text-gray-200 shadow-sm"
             placeholder="Ex: Gostaria de emendar com o feriado..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={isDark ? "#4B5563" : "#9CA3AF"}
             multiline
             textAlignVertical="top"
             value={observation}
@@ -250,8 +266,6 @@ export function NewVacationScreen() {
           isLoading={loading}
           disabled={duration <= 0}
         />
-
-        <View className="h-20" />
       </ScrollView>
 
       <View
@@ -261,7 +275,7 @@ export function NewVacationScreen() {
         <Feather
           name="calendar"
           size={180}
-          color="#000"
+          color={isDark ? "#FFF" : "#000"}
           style={{ transform: [{ rotate: "-15deg" }] }}
         />
       </View>
@@ -273,6 +287,7 @@ export function NewVacationScreen() {
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={onStartChange}
           minimumDate={new Date()}
+          textColor={isDark ? "#FFFFFF" : "#000000"}
         />
       )}
 
@@ -283,6 +298,7 @@ export function NewVacationScreen() {
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={onEndChange}
           minimumDate={addDays(startDate, 1)}
+          textColor={isDark ? "#FFFFFF" : "#000000"}
         />
       )}
 

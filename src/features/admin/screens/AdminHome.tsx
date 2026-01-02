@@ -5,15 +5,18 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useColorScheme } from "nativewind";
 
 import { User } from "@/features/auth/store/useAuthStore";
 import { Avatar } from "@/components/Avatar";
 import { formatShortName } from "@/utils/textUtils";
 import { adminService } from "@/features/admin/services/adminService";
+import { seedService } from "@/features/vacations/services/seedService";
 import { RootStackParamList } from "@/types/navigation";
 
 type AdminNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -25,9 +28,12 @@ interface AdminHomeProps {
 
 export function AdminHome({ user, onLogout }: AdminHomeProps) {
   const navigation = useNavigation<AdminNavigationProp>();
+  const { colorScheme, toggleColorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   const loadDashboard = async () => {
     setLoading(true);
@@ -41,6 +47,22 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
     }
   };
 
+  const handleRunSeed = async () => {
+    setIsSeeding(true);
+    try {
+      await seedService.run();
+      await loadDashboard();
+      alert(
+        "Massa de dados gerada com sucesso! Use as contas @teste.com para logar."
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Falha ao gerar dados.");
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
@@ -50,7 +72,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
   const hasPending = pendingCount > 0;
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-background-light dark:bg-background-dark">
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
@@ -60,7 +82,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
         <View className="bg-purple-700 pb-10 pt-16 rounded-b-[40px] px-6 shadow-lg shadow-purple-900/20">
           <View className="flex-row justify-between items-start mb-6">
             <View className="flex-row items-center">
-              <View className="bg-white p-1 rounded-full shadow-sm mr-4">
+              <View className="bg-surface-light dark:bg-surface-dark p-1 rounded-full shadow-sm mr-4">
                 <Avatar name={user.name} avatarId={user.avatarID} size="lg" />
               </View>
               <View>
@@ -83,17 +105,31 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={onLogout}
-              className="bg-purple-600 p-3 rounded-full border border-purple-500 shadow-sm"
-            >
-              <Feather name="log-out" size={20} color="#E9D5FF" />
-            </TouchableOpacity>
+
+            <View className="flex-row items-center gap-x-2">
+              <TouchableOpacity
+                onPress={toggleColorScheme}
+                className="bg-purple-600 p-3 rounded-full border border-purple-500 shadow-sm"
+              >
+                <Feather
+                  name={isDark ? "sun" : "moon"}
+                  size={20}
+                  color="#E9D5FF"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={onLogout}
+                className="bg-purple-600 p-3 rounded-full border border-purple-500 shadow-sm"
+              >
+                <Feather name="log-out" size={20} color="#E9D5FF" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
         <View className="px-6 -mt-8">
-          <View className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6">
+          <View className="bg-surface-light dark:bg-surface-dark p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
             <View className="flex-row justify-between items-start mb-4">
               <View
                 className={`p-3 rounded-2xl ${
@@ -121,11 +157,11 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
               </View>
             </View>
 
-            <Text className="text-3xl font-bold text-gray-800 mb-1">
+            <Text className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-1">
               {loading ? "--" : pendingCount}
             </Text>
 
-            <Text className="text-gray-500 font-medium mb-4">
+            <Text className="text-gray-500 dark:text-gray-400 font-medium mb-4">
               {hasPending
                 ? "Novos cadastros aguardando aprovação."
                 : "Não há solicitações pendentes no momento."}
@@ -135,12 +171,12 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
               onPress={() => hasPending && navigation.navigate("UserApproval")}
               disabled={!hasPending}
               className={`py-3 rounded-xl flex-row justify-center items-center ${
-                hasPending ? "bg-orange-500" : "bg-gray-100"
+                hasPending ? "bg-orange-500" : "bg-gray-100 dark:bg-gray-800"
               }`}
             >
               <Text
                 className={`font-bold mr-2 ${
-                  hasPending ? "text-white" : "text-gray-400"
+                  hasPending ? "text-white" : "text-gray-400 dark:text-gray-500"
                 }`}
               >
                 {hasPending ? "Revisar Cadastros" : "Nenhuma Pendência"}
@@ -151,34 +187,35 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
             </TouchableOpacity>
           </View>
 
-          <Text className="text-lg font-bold text-gray-800 mb-4 ml-2">
+          <Text className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4 ml-2">
             Gestão do Sistema
           </Text>
 
-          <View className="flex-row gap-4 mb-4">
+          <View className="flex-row gap-4 mb-8">
             <TouchableOpacity
               onPress={() => navigation.navigate("EmployeesList")}
-              className="flex-1 bg-white p-5 rounded-3xl border border-gray-100 shadow-sm active:bg-gray-50"
+              className="flex-1 bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm active:opacity-70"
             >
-              <View className="bg-blue-100 w-10 h-10 rounded-full items-center justify-center mb-3">
+              <View className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 rounded-full items-center justify-center mb-3">
                 <Feather name="users" size={20} color="#2563EB" />
               </View>
-              <Text className="font-bold text-gray-800 text-base mb-1">
+              <Text className="font-bold text-gray-800 dark:text-gray-100 text-base mb-1">
                 Colaboradores
               </Text>
+              <Text className="text-xs text-gray-400">Gerenciar Equipe</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => navigation.navigate("AllVacations")}
-              className="flex-1 bg-white p-5 rounded-3xl border border-gray-100 shadow-sm active:bg-gray-50"
+              className="flex-1 bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm active:opacity-70"
             >
-              <View className="bg-emerald-100 w-10 h-10 rounded-full items-center justify-center mb-3">
+              <View className="bg-emerald-100 dark:bg-emerald-900/30 w-10 h-10 rounded-full items-center justify-center mb-3">
                 <Feather name="calendar" size={20} color="#059669" />
               </View>
-              <Text className="font-bold text-gray-800 text-base mb-1">
+              <Text className="font-bold text-gray-800 dark:text-gray-100 text-base mb-1">
                 Todas as Férias
               </Text>
-              <Text className="text-xs text-gray-400">Auditoria</Text>
+              <Text className="text-xs text-gray-400">Auditoria Geral</Text>
             </TouchableOpacity>
           </View>
         </View>

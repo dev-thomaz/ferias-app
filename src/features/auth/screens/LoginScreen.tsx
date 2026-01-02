@@ -181,7 +181,7 @@ export function LoginScreen() {
 
   const RoleSelector = () => (
     <View className="mb-4">
-      <Text className="text-gray-500 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">
+      <Text className="text-gray-500 dark:text-gray-400 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">
         Eu sou:
       </Text>
       <View className="flex-row gap-3">
@@ -199,7 +199,9 @@ export function LoginScreen() {
               onPress={() => setRole(r)}
               activeOpacity={0.7}
               className={`flex-1 py-3 rounded-xl border items-center justify-center ${
-                isSelected ? activeColor : "bg-gray-50 border-gray-200"
+                isSelected
+                  ? activeColor
+                  : "bg-background-light dark:bg-background-dark border-gray-200"
               }`}
             >
               <Text
@@ -217,7 +219,7 @@ export function LoginScreen() {
   );
 
   const AvatarSelector = () => (
-    <View className="mb-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
+    <View className="mb-2 bg-background-light dark:bg-background-dark p-3 rounded-xl border border-gray-100">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Feather name="smile" size={18} color="#4B5563" />
@@ -245,7 +247,7 @@ export function LoginScreen() {
             className={`flex-1 py-2 rounded-lg border flex-row items-center justify-center ${
               gender === "M"
                 ? "bg-blue-100 border-blue-200"
-                : "bg-white border-gray-200"
+                : "bg-surface-light dark:bg-surface-dark border-gray-200"
             }`}
           >
             <Feather
@@ -255,7 +257,9 @@ export function LoginScreen() {
             />
             <Text
               className={`ml-2 text-xs font-bold ${
-                gender === "M" ? "text-blue-700" : "text-gray-500"
+                gender === "M"
+                  ? "text-blue-700"
+                  : "text-gray-500 dark:text-gray-400"
               }`}
             >
               Masculino
@@ -267,7 +271,7 @@ export function LoginScreen() {
             className={`flex-1 py-2 rounded-lg border flex-row items-center justify-center ${
               gender === "F"
                 ? "bg-pink-100 border-pink-200"
-                : "bg-white border-gray-200"
+                : "bg-surface-light dark:bg-surface-dark border-gray-200"
             }`}
           >
             <Feather
@@ -277,7 +281,9 @@ export function LoginScreen() {
             />
             <Text
               className={`ml-2 text-xs font-bold ${
-                gender === "F" ? "text-pink-700" : "text-gray-500"
+                gender === "F"
+                  ? "text-pink-700"
+                  : "text-gray-500 dark:text-gray-400"
               }`}
             >
               Feminino
@@ -291,12 +297,12 @@ export function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+      className="flex-1 bg-surface-light dark:bg-surface-dark"
     >
       <StatusBar style="light" />
 
       <View className="bg-blue-600 h-[30%] justify-end items-center pb-12 rounded-b-[40px] shadow-lg shadow-blue-900/20 z-10">
-        <View className="bg-white/20 p-4 rounded-2xl mb-4 backdrop-blur-md">
+        <View className="bg-surface-light dark:bg-surface-dark/20 p-4 rounded-2xl mb-4 backdrop-blur-md">
           <Feather name="umbrella" size={40} color="#fff" />
         </View>
         <Text className="text-4xl font-bold text-white tracking-tight">
@@ -316,10 +322,10 @@ export function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="mb-6">
-          <Text className="text-2xl font-bold text-gray-800 text-center mb-2">
+          <Text className="text-2xl font-bold text-gray-800 dark:text-gray-100 text-center mb-2">
             {isRegistering ? "Crie sua conta" : "Bem-vindo de volta"}
           </Text>
-          <Text className="text-gray-500 text-center">
+          <Text className="text-gray-500 dark:text-gray-400 text-center">
             {isRegistering
               ? "Preencha os dados e escolha seu perfil."
               : "Informe suas credenciais para acessar."}
@@ -328,20 +334,20 @@ export function LoginScreen() {
 
         <View className="gap-y-4 mb-6">
           {isRegistering && (
-            <View className="bg-gray-50 flex-row items-center px-4 rounded-xl border border-gray-200 h-14 focus:border-blue-500">
+            <View className="bg-background-light dark:bg-background-dark flex-row items-center px-4 rounded-xl border border-gray-200 h-14 focus:border-blue-500">
               <Feather name="user" size={20} color="#9CA3AF" />
               <TextInput
                 placeholder="Nome Completo"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
-                className="flex-1 ml-3 text-gray-800 font-medium"
+                className="flex-1 ml-3 text-gray-800 dark:text-gray-100 font-medium"
                 placeholderTextColor="#9CA3AF"
               />
             </View>
           )}
 
-          <View className="bg-gray-50 flex-row items-center px-4 rounded-xl border border-gray-200 h-14">
+          <View className="bg-background-light dark:bg-background-dark flex-row items-center px-4 rounded-xl border border-gray-200 h-14">
             <Feather name="mail" size={20} color="#9CA3AF" />
             <TextInput
               placeholder="E-mail corporativo"
@@ -349,19 +355,19 @@ export function LoginScreen() {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
-              className="flex-1 ml-3 text-gray-800 font-medium"
+              className="flex-1 ml-3 text-gray-800 dark:text-gray-100 font-medium"
               placeholderTextColor="#9CA3AF"
             />
           </View>
 
-          <View className="bg-gray-50 flex-row items-center px-4 rounded-xl border border-gray-200 h-14">
+          <View className="bg-background-light dark:bg-background-dark flex-row items-center px-4 rounded-xl border border-gray-200 h-14">
             <Feather name="lock" size={20} color="#9CA3AF" />
             <TextInput
               placeholder="Senha"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              className="flex-1 ml-3 text-gray-800 font-medium"
+              className="flex-1 ml-3 text-gray-800 dark:text-gray-100 font-medium"
               placeholderTextColor="#9CA3AF"
             />
           </View>
@@ -382,7 +388,7 @@ export function LoginScreen() {
         />
 
         <View className="flex-row justify-center mt-6">
-          <Text className="text-gray-500">
+          <Text className="text-gray-500 dark:text-gray-400">
             {isRegistering ? "Já tem acesso? " : "Novo por aqui? "}
           </Text>
           <TouchableOpacity onPress={toggleMode}>

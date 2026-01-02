@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { useColorScheme } from "nativewind";
 
 import { auth, db } from "@/config/firebase";
 import { useAuthStore } from "../features/auth/store/useAuthStore";
@@ -18,9 +23,30 @@ import { EmployeesListScreen } from "../features/admin/screens/EmployeesListScre
 
 const Stack = createNativeStackNavigator();
 
+const AppDarkTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: "#0F172A",
+    card: "#1E293B",
+    text: "#F1F5F9",
+    border: "#334155",
+  },
+};
+
+const AppLightTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "#F8FAFC",
+    card: "#FFFFFF",
+  },
+};
+
 export function Routes() {
   const { isAuthenticated, user, setUser, logout } = useAuthStore();
   const [loadingCheck, setLoadingCheck] = useState(true);
+  const { colorScheme } = useColorScheme();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -69,15 +95,25 @@ export function Routes() {
 
   if (loadingCheck) {
     return (
-      <View className="flex-1 justify-center items-center bg-gray-50">
+      <View className="flex-1 justify-center items-center bg-background-light dark:bg-background-dark">
         <ActivityIndicator size="large" color="#059669" />
       </View>
     );
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer
+      theme={colorScheme === "dark" ? AppDarkTheme : AppLightTheme}
+    >
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+
+          contentStyle: {
+            backgroundColor: colorScheme === "dark" ? "#0F172A" : "#F8FAFC",
+          },
+        }}
+      >
         {!isAuthenticated ? (
           <Stack.Screen name="Login" component={LoginScreen} />
         ) : (
