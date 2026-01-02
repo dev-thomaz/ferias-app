@@ -1,204 +1,155 @@
-import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  LayoutAnimation,
-} from "react-native";
+import React from "react";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { parseISO, differenceInDays } from "date-fns";
+import { useColorScheme } from "nativewind";
 
 import { VacationRequest } from "../../types";
 import { formatShortName } from "@/utils/textUtils";
-import { formatDate } from "@/utils/dateUtils";
 import { Avatar } from "@/components/Avatar";
+import { ScreenWrapper } from "@/components/ScreenWrapper";
+import { useVacationDetailsBase } from "../../hooks/useVacationDetailsBase";
 
 export function AdminView({ request }: { request: VacationRequest }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const isPending = request.status === "PENDING";
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
 
-  const duration = useMemo(
-    () =>
-      differenceInDays(parseISO(request.endDate), parseISO(request.startDate)),
-    [request]
-  );
-
-  const formattedCreationDate = useMemo(() => {
-    return formatDate(request.createdAt, "dd 'de' MMMM 'às' HH:mm");
-  }, [request.createdAt]);
-
-  const formattedUpdateDate = useMemo(() => {
-    if (!request.updatedAt) return null;
-    return formatDate(request.updatedAt, "dd 'de' MMMM 'às' HH:mm");
-  }, [request.updatedAt]);
-
-  const toggleAccordion = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(!isExpanded);
-  };
-
-  const statusColorClass =
-    request.status === "APPROVED"
-      ? "text-emerald-700 bg-emerald-50 border-emerald-100"
-      : request.status === "REJECTED"
-      ? "text-rose-700 bg-rose-50 border-rose-100"
-      : "text-amber-700 bg-amber-50 border-amber-100";
+  const { isExpanded, duration, formattedDates, status, toggleAccordion } =
+    useVacationDetailsBase(request);
 
   return (
-    <View className="flex-1 relative overflow-hidden bg-background-light dark:bg-background-dark">
-      <View
-        className="absolute bottom-[-20] right-[-50] opacity-5"
-        style={{ zIndex: -1 }}
-        pointerEvents="none"
-      >
-        <Feather
-          name="calendar"
-          size={300}
-          color="#000"
-          style={{ transform: [{ rotate: "-15deg" }] }}
-        />
-      </View>
-
+    <ScreenWrapper>
       <ScrollView
-        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 24, paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
-        className="flex-1"
       >
-        <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex-row items-center">
-          <View className="mr-4">
-            <Avatar
-              name={request.userName}
-              avatarId={request.userAvatarId}
-              size="lg"
-            />
-          </View>
-          <View className="flex-1">
-            <Text className="text-gray-400 text-xs font-bold uppercase">
+        <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 flex-row items-center">
+          <Avatar
+            name={request.userName}
+            avatarId={request.userAvatarId}
+            size="lg"
+          />
+          <View className="flex-1 ml-4">
+            <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
               Colaborador
             </Text>
             <Text className="text-gray-800 dark:text-gray-100 font-bold text-xl">
               {formatShortName(request.userName)}
             </Text>
-
             <View className="flex-row items-center mt-1">
               <Feather name="clock" size={12} color="#9CA3AF" />
               <Text className="text-gray-400 text-xs ml-1 font-medium">
-                Solicitado em {formattedCreationDate}
+                Solicitado em {formattedDates.creation}
               </Text>
             </View>
           </View>
         </View>
 
-        <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
-          <View className="flex-row justify-between mb-4">
-            <Text className="text-gray-800 dark:text-gray-100 font-bold">
+        <View className="bg-surface-light dark:bg-surface-dark p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+          <View className="flex-row justify-between items-center mb-6">
+            <Text className="text-gray-800 dark:text-gray-100 font-bold text-base">
               Período Solicitado
             </Text>
-
-            <View className="bg-purple-50 px-3 py-1 rounded-full">
-              <Text className="text-purple-600 text-xs font-bold">
+            <View className="bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full">
+              <Text className="text-purple-600 dark:text-purple-400 text-xs font-bold">
                 {duration} dias
               </Text>
             </View>
           </View>
+
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-gray-400 text-xs mb-1">DE</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium text-base">
-                {formatDate(request.startDate)}
+              <Text className="text-gray-400 text-[10px] font-bold mb-1 uppercase">
+                De
+              </Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-bold text-base">
+                {formattedDates.start}
               </Text>
             </View>
-            <Feather name="arrow-right" size={20} color="#9CA3AF" />
+            <Feather
+              name="arrow-right"
+              size={20}
+              color={isDark ? "#4B5563" : "#9CA3AF"}
+            />
             <View>
-              <Text className="text-gray-400 text-xs mb-1">ATÉ</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium text-base">
-                {formatDate(request.endDate)}
+              <Text className="text-gray-400 text-[10px] font-bold mb-1 uppercase">
+                Até
+              </Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-bold text-base">
+                {formattedDates.end}
               </Text>
             </View>
           </View>
         </View>
 
-        <View className="mb-6">
-          <TouchableOpacity onPress={toggleAccordion} activeOpacity={0.7}>
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-gray-700 font-bold ml-1">
-                Observação do Colaborador
-              </Text>
-              <View className="bg-gray-100 p-1 rounded-full">
-                <Feather
-                  name={isExpanded ? "chevron-up" : "chevron-down"}
-                  size={20}
-                  color="#6B7280"
-                />
-              </View>
-            </View>
+        <TouchableOpacity
+          onPress={toggleAccordion}
+          activeOpacity={0.8}
+          className="bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 mb-6"
+        >
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="font-bold text-gray-700 dark:text-gray-200">
+              Observação do Colaborador
+            </Text>
+            <Feather
+              name={isExpanded ? "chevron-up" : "chevron-down"}
+              size={20}
+              color="#9CA3AF"
+            />
+          </View>
+          <Text
+            className="text-gray-500 italic leading-relaxed"
+            numberOfLines={isExpanded ? undefined : 3}
+          >
+            {request.observation || "Nenhuma observação informada."}
+          </Text>
+        </TouchableOpacity>
 
-            <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl border border-gray-200">
-              <Text
-                className="text-gray-600 leading-relaxed italic"
-                numberOfLines={isExpanded ? undefined : 3}
-              >
-                {request.observation || "Nenhuma observação informada."}
-              </Text>
-
-              {!isExpanded &&
-                request.observation &&
-                request.observation.length > 100 && (
-                  <Text className="text-purple-600 text-xs mt-2 font-bold">
-                    Ver mais...
-                  </Text>
-                )}
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {!isPending && (
+        {!status.isPending && (
           <View className="mb-6">
-            <View className="flex-row items-center mb-4 ml-1">
+            <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4 px-1">
+              Dados da Decisão
+            </Text>
+            <View className="flex-row items-center mb-4">
               <Avatar
-                name={request.managerName || "Gestor"}
+                name={request.managerName || "G"}
                 avatarId={request.managerAvatarId}
                 size="lg"
               />
-
-              <View className="ml-4 flex-1 justify-center">
+              <View className="ml-4 flex-1">
                 <Text
-                  className={`font-bold text-base leading-tight ${
-                    request.status === "APPROVED"
-                      ? "text-emerald-700"
-                      : "text-rose-700"
+                  className={`font-bold text-base ${
+                    status.isApproved ? "text-emerald-600" : "text-rose-600"
                   }`}
                 >
                   Solicitação{" "}
-                  {request.status === "APPROVED"
-                    ? "aprovada ✅"
-                    : "reprovada ❌"}
-                  {"\n"}
-                  <Text className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                    por {formatShortName(request.managerName || "Gestor")}
-                  </Text>
-                  {formattedUpdateDate && (
-                    <>
-                      {"\n"}
-                      <Text className="text-gray-400 text-xs font-normal">
-                        em {formattedUpdateDate}
-                      </Text>
-                    </>
-                  )}
+                  {status.isApproved ? "aprovada ✅" : "reprovada ❌"}
                 </Text>
+                <Text className="text-gray-500 text-xs">
+                  por {formatShortName(request.managerName || "Gestor")}
+                </Text>
+                {formattedDates.update && (
+                  <Text className="text-gray-400 text-[10px] mt-0.5">
+                    em {formattedDates.update}
+                  </Text>
+                )}
               </View>
             </View>
 
             {request.managerObservation && (
               <View
                 className={`p-5 rounded-2xl border ${
-                  request.status === "APPROVED"
-                    ? "bg-emerald-50 border-emerald-100 text-emerald-900"
-                    : "bg-rose-50 border-rose-100 text-rose-900"
+                  status.isApproved
+                    ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100"
+                    : "bg-rose-50 dark:bg-rose-900/10 border-rose-100"
                 }`}
               >
-                <Text className="leading-relaxed italic font-medium">
+                <Text
+                  className={`italic font-medium ${
+                    status.isApproved
+                      ? "text-emerald-900 dark:text-emerald-200"
+                      : "text-rose-900 dark:text-rose-200"
+                  }`}
+                >
                   "{request.managerObservation}"
                 </Text>
               </View>
@@ -206,6 +157,13 @@ export function AdminView({ request }: { request: VacationRequest }) {
           </View>
         )}
       </ScrollView>
-    </View>
+
+      <View
+        className="absolute bottom-[-20] right-[-50] opacity-5 -z-10"
+        pointerEvents="none"
+      >
+        <Feather name="calendar" size={300} color={isDark ? "#FFF" : "#000"} />
+      </View>
+    </ScreenWrapper>
   );
 }
