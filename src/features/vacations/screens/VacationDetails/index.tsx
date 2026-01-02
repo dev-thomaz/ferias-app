@@ -8,6 +8,7 @@ import { VacationRequest } from "../../types";
 
 import { ManagerView } from "./ManagerView";
 import { EmployeeView } from "./EmployeeView";
+import { AdminView } from "./AdminView";
 
 export function VacationDetailsScreen() {
   const navigation = useNavigation();
@@ -16,6 +17,18 @@ export function VacationDetailsScreen() {
 
   const { request } = route.params as {
     request: VacationRequest & { id: string };
+  };
+
+  const renderContent = () => {
+    switch (user?.role) {
+      case "ADMIN":
+        return <AdminView request={request} />;
+      case "GESTOR":
+        return <ManagerView request={request} user={user} />;
+      case "COLABORADOR":
+      default:
+        return <EmployeeView request={request} />;
+    }
   };
 
   return (
@@ -38,11 +51,7 @@ export function VacationDetailsScreen() {
         </Text>
       </View>
 
-      {user?.role === "GESTOR" ? (
-        <ManagerView request={request} user={user} />
-      ) : (
-        <EmployeeView request={request} />
-      )}
+      {renderContent()}
     </View>
   );
 }

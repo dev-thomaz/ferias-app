@@ -5,6 +5,7 @@ import { Dialog } from "@/components/Dialog";
 
 import { ManagerHome } from "./ManagerHome";
 import { EmployeeHome } from "./EmployeeHome";
+import { AdminHome } from "@/features/admin/screens/AdminHome";
 
 export function HomeScreen() {
   const { user, logout } = useAuthStore();
@@ -21,19 +22,29 @@ export function HomeScreen() {
 
   if (!user) return null;
 
+  const isAdmin = user.role === "ADMIN";
+
+  const renderContent = () => {
+    switch (user.role) {
+      case "ADMIN":
+        return <AdminHome user={user} onLogout={handleLogoutPress} />;
+      case "GESTOR":
+        return <ManagerHome user={user} onLogout={handleLogoutPress} />;
+      case "COLABORADOR":
+      default:
+        return <EmployeeHome user={user} onLogout={handleLogoutPress} />;
+    }
+  };
+
   return (
-    <View className="flex-1 bg-gray-50 pt-12">
+    <View className={`flex-1 bg-gray-50 ${isAdmin ? "" : "pt-12"}`}>
       <StatusBar
-        barStyle="dark-content"
+        barStyle={isAdmin ? "light-content" : "dark-content"}
         backgroundColor="transparent"
         translucent
       />
 
-      {user.role === "GESTOR" ? (
-        <ManagerHome user={user} onLogout={handleLogoutPress} />
-      ) : (
-        <EmployeeHome user={user} onLogout={handleLogoutPress} />
-      )}
+      {renderContent()}
 
       <Dialog
         visible={logoutDialog}

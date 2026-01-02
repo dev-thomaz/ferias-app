@@ -26,10 +26,12 @@ const mapDocument = (
     endDate: data.endDate,
     observation: data.observation,
     status: data.status as VacationStatus,
+
     createdAt:
       data.createdAt instanceof Timestamp
         ? data.createdAt.toDate().toISOString()
-        : new Date().toISOString(),
+        : data.createdAt,
+
     updatedAt: data.updatedAt,
     managedBy: data.managedBy,
     managerName: data.managerName,

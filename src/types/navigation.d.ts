@@ -1,12 +1,14 @@
-import { VacationRequest } from "../features/vacations/services/vacationService";
+import { VacationRequest } from "@/features/vacations/types";
 
 export type RootStackParamList = {
   Login: undefined;
-  Register: undefined;
+
   Home: undefined;
   NewVacation: undefined;
-
-  VacationDetails: { request: VacationRequest & { id: string } };
+  VacationDetails: { request: VacationRequest };
+  UserApproval: undefined;
+  AllVacations: undefined;
+  EmployeesList: undefined;
 };
 
 declare global {

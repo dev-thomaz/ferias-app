@@ -2,7 +2,6 @@ import { db } from "@/config/firebase";
 import {
   collection,
   addDoc,
-  serverTimestamp,
   query,
   where,
   getDocs,
@@ -26,10 +25,12 @@ const mapDocument = (
     endDate: data.endDate,
     observation: data.observation,
     status: data.status as VacationStatus,
+
     createdAt:
       data.createdAt instanceof Timestamp
         ? data.createdAt.toDate().toISOString()
-        : new Date().toISOString(),
+        : data.createdAt,
+
     updatedAt: data.updatedAt,
     managedBy: data.managedBy,
     managerName: data.managerName,
@@ -43,7 +44,8 @@ export const vacationService = {
     const docRef = await addDoc(collection(db, "vacations"), {
       ...data,
       status: "PENDING",
-      createdAt: serverTimestamp(),
+
+      createdAt: new Date().toISOString(),
     });
     return docRef.id;
   },

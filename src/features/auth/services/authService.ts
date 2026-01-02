@@ -7,6 +7,8 @@ import {
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { UserRole } from "../store/useAuthStore";
 
+export type AccountStatus = "ACTIVE" | "WAITING_APPROVAL" | "DISABLED";
+
 export const authService = {
   async login(email: string, pass: string) {
     const userCredential = await signInWithEmailAndPassword(auth, email, pass);
@@ -15,22 +17,36 @@ export const authService = {
     const userDoc = await getDoc(doc(db, "users", uid));
 
     if (!userDoc.exists()) {
-      throw new Error("Perfil não encontrado.");
+      await signOut(auth);
+      throw new Error("USER_NOT_FOUND");
     }
 
     const data = userDoc.data();
+
+    if (data.accountStatus === "WAITING_APPROVAL") {
+      throw new Error("ACCOUNT_PENDING");
+    }
+
+    if (data.accountStatus === "DISABLED") {
+      throw new Error("ACCOUNT_DISABLED");
+    }
 
     return {
       id: uid,
       email,
       name: data.name,
-      role: data.role,
-
+      role: data.role as UserRole,
       avatarID: data.avatarID ?? data.avatarId ?? null,
     };
   },
 
-  async register(email: string, pass: string, name: string, role: UserRole) {
+  async register(
+    name: string,
+    email: string,
+    pass: string,
+    role: UserRole,
+    avatarID: number | null
+  ) {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -42,12 +58,14 @@ export const authService = {
       name,
       email,
       role,
-      avatarID: null,
+      accountStatus: "WAITING_APPROVAL" as AccountStatus,
+      avatarID: avatarID,
+      createdAt: new Date().toISOString(),
     };
 
     await setDoc(doc(db, "users", uid), userData);
 
-    return { id: uid, ...userData };
+    await signOut(auth);
   },
 
   async logout() {
@@ -68,12 +86,33 @@ export const authService = {
         name: "Gisele Gestora",
         role: "GESTOR",
       },
+      {
+        email: "admin@teste.com",
+        pass: "123456",
+        name: "Arnoldo Admin",
+        role: "ADMIN",
+      },
     ];
 
     for (const u of users) {
       try {
-        await this.register(u.email, u.pass, u.name, u.role as UserRole);
-      } catch (e) {}
+        const cred = await createUserWithEmailAndPassword(
+          auth,
+          u.email,
+          u.pass
+        );
+
+        await setDoc(doc(db, "users", cred.user.uid), {
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          accountStatus: "ACTIVE",
+          avatarID: Math.floor(Math.random() * 70) + 1,
+          createdAt: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.log(`Usuário ${u.email} já existe ou erro:`, e);
+      }
     }
   },
 };

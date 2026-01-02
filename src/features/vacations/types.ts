@@ -4,7 +4,8 @@ export interface VacationRequest {
   id: string;
   userId: string;
   userName: string;
-  userAvatarId?: string | number;
+
+  userAvatarId?: string | number | null;
   startDate: string;
   endDate: string;
 
@@ -17,7 +18,8 @@ export interface VacationRequest {
   managedBy?: string;
   managerName?: string;
   managerObservation?: string;
-  managerAvatarId?: string | number;
+
+  managerAvatarId?: string | number | null;
 }
 
 export type CreateVacationDTO = Omit<
@@ -29,6 +31,7 @@ export type CreateVacationDTO = Omit<
   | "managedBy"
   | "managerName"
   | "managerObservation"
+  | "managerAvatarId"
 >;
 
 export interface VacationConfig {
