@@ -12,6 +12,9 @@ import { LoginScreen } from "../features/auth/screens/LoginScreen";
 import { HomeScreen } from "../features/vacations/screens/Home/index";
 import { NewVacationScreen } from "../features/vacations/screens/NewVacationScreen";
 import { VacationDetailsScreen } from "../features/vacations/screens/VacationDetails/index";
+import { UserApprovalScreen } from "../features/admin/screens/UserApprovalScreen";
+import { AllVacationsScreen } from "@/features/admin/screens/AllVacationsScreen";
+import { EmployeesListScreen } from "../features/admin/screens/EmployeesListScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +37,12 @@ export function Routes() {
           if (docSnap.exists()) {
             const userData = docSnap.data();
 
+            if (userData.accountStatus !== "ACTIVE") {
+              logout();
+              setLoadingCheck(false);
+              return;
+            }
+
             setUser({
               id: firebaseUser.uid,
               name: userData.name || firebaseUser.displayName || "Usuário",
@@ -41,12 +50,15 @@ export function Routes() {
               role: userData.role,
               avatarID: userData.avatarID,
             });
+          } else {
+            logout();
           }
         } else {
           logout();
         }
       } catch (error) {
         console.error("Erro ao sincronizar usuário:", error);
+        logout();
       } finally {
         setLoadingCheck(false);
       }
@@ -57,14 +69,7 @@ export function Routes() {
 
   if (loadingCheck) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#F9FAFB",
-        }}
-      >
+      <View className="flex-1 justify-center items-center bg-gray-50">
         <ActivityIndicator size="large" color="#059669" />
       </View>
     );
@@ -91,6 +96,23 @@ export function Routes() {
             <Stack.Screen
               name="VacationDetails"
               component={VacationDetailsScreen}
+              options={{ animation: "slide_from_right" }}
+            />
+
+            <Stack.Screen
+              name="UserApproval"
+              component={UserApprovalScreen}
+              options={{ animation: "slide_from_right" }}
+            />
+
+            <Stack.Screen
+              name="AllVacations"
+              component={AllVacationsScreen}
+              options={{ animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="EmployeesList"
+              component={EmployeesListScreen}
               options={{ animation: "slide_from_right" }}
             />
           </>

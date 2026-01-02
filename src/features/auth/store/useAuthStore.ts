@@ -29,7 +29,6 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         set({ user: null, isAuthenticated: false });
-
         AsyncStorage.removeItem("auth-storage-ferias");
       },
     }),
