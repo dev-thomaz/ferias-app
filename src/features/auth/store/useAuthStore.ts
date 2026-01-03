@@ -1,18 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-export type UserRole = "GESTOR" | "COLABORADOR" | "ADMIN";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  avatarID?: number | null;
-  accountStatus?: "ACTIVE" | "DISABLED" | "WAITING_APPROVAL";
-  isSyncing?: boolean;
-}
+import { User } from "@/types";
 
 interface AuthState {
   user: User | null;
@@ -31,6 +20,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         set({ user: null, isAuthenticated: false });
+
         AsyncStorage.removeItem("auth-storage-ferias");
       },
     }),

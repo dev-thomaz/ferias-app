@@ -5,6 +5,7 @@ export type VacationStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type AccountStatus = "ACTIVE" | "DISABLED" | "WAITING_APPROVAL";
 export interface VacationConfig {
   allowConcurrentRequests: boolean;
+  adminCanManageVacations: boolean;
 }
 
 export interface User {

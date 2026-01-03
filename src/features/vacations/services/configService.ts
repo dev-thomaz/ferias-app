@@ -3,32 +3,25 @@ import { VacationConfig } from "@/features/vacations/types";
 
 export const configService = {
   async getVacationConfig(): Promise<VacationConfig> {
+    const docRef = db.collection("config").doc("vacation_rules");
+
     try {
-      const docRef = db.collection("config").doc("vacation_rules");
       const docSnap = await docRef.get();
 
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        return {
-          allowConcurrentRequests: data?.allowConcurrentRequests ?? false,
-        };
-      } else {
-        const defaultConfig: VacationConfig = {
-          allowConcurrentRequests: false,
-        };
-        await docRef.set(defaultConfig);
-        return defaultConfig;
+        return docSnap.data() as VacationConfig;
       }
+
+      return { allowConcurrentRequests: false, adminCanManageVacations: true };
     } catch (error) {
-      console.error("Erro ao buscar config:", error);
-      return { allowConcurrentRequests: false };
+      return { allowConcurrentRequests: false, adminCanManageVacations: true };
     }
   },
 
-  async updateVacationConfig(allowConcurrent: boolean): Promise<void> {
+  async updateVacationConfig(updates: Partial<VacationConfig>): Promise<void> {
     await db
       .collection("config")
       .doc("vacation_rules")
-      .set({ allowConcurrentRequests: allowConcurrent }, { merge: true });
+      .set(updates, { merge: true });
   },
 };

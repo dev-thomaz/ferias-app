@@ -1,12 +1,12 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import {
   Clock,
   ArrowRight,
   ChevronUp,
   ChevronDown,
   Calendar,
+  ShieldAlert,
 } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
@@ -14,19 +14,58 @@ import { VacationRequest } from "../../types";
 import { formatShortName } from "@/utils/textUtils";
 import { Avatar } from "@/components/Avatar";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
-import { useVacationDetailsBase } from "../../hooks/useVacationDetailsBase";
+import { ActionModal } from "../../components/ActionModal";
+import { ConfirmationSheet } from "../../components/ConfirmationSheet";
+import { Dialog } from "@/components/Dialog";
 
-export function AdminView({ request }: { request: VacationRequest }) {
+import { useVacationDetailsBase } from "../../hooks/useVacationDetailsBase";
+import { useManagerActions } from "../../hooks/useManagerActions";
+import { configService } from "@/features/vacations/services/configService";
+
+export function AdminView({
+  request,
+  user,
+}: {
+  request: VacationRequest & { id: string };
+  user: any;
+}) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  const [adminCanManage, setAdminCanManage] = useState(true);
 
   const { isExpanded, duration, formattedDates, status, toggleAccordion } =
     useVacationDetailsBase(request);
 
+  const {
+    confirmSheetVisible,
+    setConfirmSheetVisible,
+    modalVisible,
+    setModalVisible,
+    actionType,
+    setActionType,
+    loading,
+    dialog,
+    finalSubmit,
+    closeDialog,
+  } = useManagerActions(request.id, user);
+
+  useEffect(() => {
+    configService.getVacationConfig().then((config) => {
+      setAdminCanManage(config.adminCanManageVacations);
+    });
+  }, []);
+
+  const showActions = status.isPending && adminCanManage;
+
   return (
-    <ScreenWrapper>
+    <ScreenWrapper withScroll={false}>
       <ScrollView
-        contentContainerStyle={{ padding: 24, paddingBottom: 60 }}
+        className="flex-1"
+        contentContainerStyle={{
+          padding: 24,
+          paddingBottom: showActions ? 180 : 60,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View className="bg-surface-light dark:bg-surface-dark p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 flex-row items-center">
@@ -93,7 +132,6 @@ export function AdminView({ request }: { request: VacationRequest }) {
             <Text className="font-bold text-gray-700 dark:text-gray-200">
               Observação do Colaborador
             </Text>
-
             {isExpanded ? (
               <ChevronUp size={20} color="#9CA3AF" />
             ) : (
@@ -131,36 +169,65 @@ export function AdminView({ request }: { request: VacationRequest }) {
                 <Text className="text-gray-500 text-xs">
                   por {formatShortName(request.managerName || "Gestor")}
                 </Text>
-                {formattedDates.update && (
-                  <Text className="text-gray-400 text-[10px] mt-0.5">
-                    em {formattedDates.update}
-                  </Text>
-                )}
               </View>
             </View>
-
-            {request.managerObservation && (
-              <View
-                className={`p-5 rounded-2xl border ${
-                  status.isApproved
-                    ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100"
-                    : "bg-rose-50 dark:bg-rose-900/10 border-rose-100"
-                }`}
-              >
-                <Text
-                  className={`italic font-medium ${
-                    status.isApproved
-                      ? "text-emerald-900 dark:text-emerald-200"
-                      : "text-rose-900 dark:text-rose-200"
-                  }`}
-                >
-                  "{request.managerObservation}"
-                </Text>
-              </View>
-            )}
           </View>
         )}
       </ScrollView>
+
+      {showActions && (
+        <View className="absolute bottom-0 left-0 right-0 bg-surface-light dark:bg-surface-dark p-6 pb-10 border-t border-gray-100 dark:border-gray-800 shadow-2xl">
+          <View className="flex-row items-center mb-4 bg-orange-50 dark:bg-orange-900/10 p-2 rounded-xl border border-orange-100 dark:border-orange-800/30">
+            <ShieldAlert size={14} color="#EA580C" />
+            <Text className="text-[10px] text-orange-700 dark:text-orange-400 font-bold ml-2 uppercase">
+              Ação Administrativa Liberada
+            </Text>
+          </View>
+          <View className="flex-row gap-4">
+            <TouchableOpacity
+              className="flex-1 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 py-4 rounded-2xl items-center"
+              onPress={() => {
+                setActionType("REJECT");
+                setConfirmSheetVisible(true);
+              }}
+            >
+              <Text className="text-rose-600 dark:text-rose-400 font-bold uppercase text-xs">
+                Reprovar ❌
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-1 bg-purple-700 py-4 rounded-2xl items-center shadow-lg shadow-purple-500/20"
+              onPress={() => {
+                setActionType("APPROVE");
+                setConfirmSheetVisible(true);
+              }}
+            >
+              <Text className="text-white font-bold uppercase text-xs">
+                Aprovar ✅
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      <ConfirmationSheet
+        visible={confirmSheetVisible}
+        onClose={() => setConfirmSheetVisible(false)}
+        onConfirm={() => {
+          setConfirmSheetVisible(false);
+          setTimeout(() => setModalVisible(true), 300);
+        }}
+        action={actionType}
+      />
+      <ActionModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onConfirm={finalSubmit}
+        action={actionType}
+        isLoading={loading}
+      />
+      <Dialog {...dialog} onConfirm={closeDialog} />
 
       <View
         className="absolute bottom-[-20] right-[-50] opacity-5 -z-10"

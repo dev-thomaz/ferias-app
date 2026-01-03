@@ -19,6 +19,7 @@ import { VacationDetailsScreen } from "../features/vacations/screens/VacationDet
 import { UserApprovalScreen } from "../features/admin/screens/UserApprovalScreen";
 import { AllVacationsScreen } from "@/features/admin/screens/AllVacationsScreen";
 import { EmployeesListScreen } from "../features/admin/screens/EmployeesListScreen";
+import { AdminSettingsScreen } from "@/features/admin/screens/AdminSettingsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -91,6 +92,11 @@ export function Routes() {
             <Stack.Screen
               name="EmployeesList"
               component={EmployeesListScreen}
+            />
+            <Stack.Screen
+              name="AdminSettings"
+              component={AdminSettingsScreen}
+              options={{ headerShown: false }}
             />
           </>
         )}

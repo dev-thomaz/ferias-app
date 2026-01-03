@@ -37,4 +37,5 @@ export type CreateVacationDTO = Omit<
 
 export interface VacationConfig {
   allowConcurrentRequests: boolean;
+  adminCanManageVacations: boolean;
 }

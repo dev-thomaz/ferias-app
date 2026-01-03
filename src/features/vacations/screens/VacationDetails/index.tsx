@@ -26,7 +26,7 @@ export function VacationDetailsScreen() {
   const renderContent = () => {
     switch (user?.role) {
       case "ADMIN":
-        return <AdminView request={request} />;
+        return <AdminView request={request} user={user} />;
       case "GESTOR":
         return <ManagerView request={request} user={user} />;
       case "COLABORADOR":

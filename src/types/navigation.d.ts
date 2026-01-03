@@ -9,6 +9,7 @@ export type RootStackParamList = {
   UserApproval: undefined;
   AllVacations: undefined;
   EmployeesList: undefined;
+  AdminSettings: undefined;
 };
 
 declare global {

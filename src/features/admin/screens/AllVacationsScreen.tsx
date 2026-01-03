@@ -11,7 +11,6 @@ import {
 } from "react-native";
 
 import { ArrowLeft, ClipboardList, Filter } from "lucide-react-native";
-
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useColorScheme } from "nativewind";
 
@@ -20,6 +19,7 @@ import { VacationRequest, VacationStatus } from "@/features/vacations/types";
 import { translateStatusFilter } from "@/utils/textUtils";
 import { VacationCard } from "@/features/vacations/components/VacationCard";
 import { Dialog, DialogVariant } from "@/components/Dialog";
+import { ScreenWrapper } from "@/components/ScreenWrapper";
 
 type FilterType = "ALL" | VacationStatus;
 
@@ -69,20 +69,28 @@ export function AllVacationsScreen() {
     }, [])
   );
 
-  const filteredData = useMemo(() => {
-    if (activeFilter === "ALL") return data;
-    return data.filter((item) => item.status === activeFilter);
+  const sortedAndFilteredData = useMemo(() => {
+    let filtered = data;
+    if (activeFilter !== "ALL") {
+      filtered = data.filter((item) => item.status === activeFilter);
+    }
+
+    return [...filtered].sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt).getTime();
+      const dateB = new Date(b.updatedAt || b.createdAt).getTime();
+      return dateB - dateA;
+    });
   }, [data, activeFilter]);
 
   return (
-    <View className="flex-1 bg-background-light dark:bg-background-dark">
+    <ScreenWrapper withScroll={false}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       <View className="bg-surface-light dark:bg-surface-dark pt-12 pb-4 px-6 border-b border-gray-100 dark:border-gray-800 flex-row items-center justify-between shadow-sm">
         <View className="flex-row items-center">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={{ padding: 8, marginLeft: -8, borderRadius: 99 }}
+            className="p-2 -ml-2 rounded-full"
           >
             <ArrowLeft size={24} color={isDark ? "#F3F4F6" : "#374151"} />
           </TouchableOpacity>
@@ -97,48 +105,29 @@ export function AllVacationsScreen() {
         </View>
       </View>
 
-      <View style={{ marginTop: 16 }}>
+      <View className="mt-4">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ paddingLeft: 24, marginBottom: 16, marginTop: 8 }}
+          className="pl-6 mb-4 mt-2"
           contentContainerStyle={{ paddingRight: 48 }}
         >
           {FILTERS.map((tab) => (
             <TouchableOpacity
               key={tab.id}
               onPress={() => setActiveFilter(tab.id)}
-              style={{
-                marginRight: 12,
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                borderRadius: 99,
-                borderWidth: 1,
-                backgroundColor:
-                  activeFilter === tab.id
-                    ? "#9333EA"
-                    : isDark
-                    ? "#1E293B"
-                    : "#FFFFFF",
-                borderColor:
-                  activeFilter === tab.id
-                    ? "#9333EA"
-                    : isDark
-                    ? "#334155"
-                    : "#E2E8F0",
-              }}
+              className={`mr-3 px-5 py-2.5 rounded-full border ${
+                activeFilter === tab.id
+                  ? "bg-purple-600 border-purple-600"
+                  : "bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-800"
+              }`}
             >
               <Text
-                style={{
-                  fontWeight: "bold",
-                  fontSize: 12,
-                  color:
-                    activeFilter === tab.id
-                      ? "#FFFFFF"
-                      : isDark
-                      ? "#94A3B8"
-                      : "#4B5563",
-                }}
+                className={`font-bold text-xs ${
+                  activeFilter === tab.id
+                    ? "text-white"
+                    : "text-gray-600 dark:text-gray-400"
+                }`}
               >
                 {tab.label}
               </Text>
@@ -153,7 +142,7 @@ export function AllVacationsScreen() {
         </View>
       ) : (
         <FlatList
-          data={filteredData}
+          data={sortedAndFilteredData}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View className="px-6">
@@ -171,7 +160,7 @@ export function AllVacationsScreen() {
             <RefreshControl
               refreshing={loading}
               onRefresh={loadData}
-              tintColor={isDark ? "#FFF" : "#9333EA"}
+              tintColor="#9333EA"
             />
           }
           ListEmptyComponent={
@@ -184,7 +173,6 @@ export function AllVacationsScreen() {
               ) : (
                 <Filter size={48} color={isDark ? "#4B5563" : "#9CA3AF"} />
               )}
-
               <Text className="text-gray-400 dark:text-gray-500 text-center font-bold mt-4">
                 {activeFilter === "ALL"
                   ? "Nenhuma solicitação no sistema."
@@ -204,6 +192,6 @@ export function AllVacationsScreen() {
         variant={dialog.variant}
         onConfirm={() => setDialog((prev) => ({ ...prev, visible: false }))}
       />
-    </View>
+    </ScreenWrapper>
   );
 }
