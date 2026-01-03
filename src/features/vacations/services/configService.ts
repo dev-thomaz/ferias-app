@@ -1,19 +1,27 @@
 import { db } from "@/config/firebase";
-import { VacationConfig } from "../types";
-import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
+import { VacationConfig } from "@/features/vacations/types";
 
 export const configService = {
   async getVacationConfig(): Promise<VacationConfig> {
-    const docRef = db.collection("config").doc("vacation_rules");
+    try {
+      const docRef = db.collection("config").doc("vacation_rules");
+      const docSnap = await docRef.get();
 
-    const docSnap: FirebaseFirestoreTypes.DocumentSnapshot = await docRef.get();
-
-    if (docSnap.exists()) {
-      return docSnap.data() as VacationConfig;
-    } else {
-      const defaultConfig: VacationConfig = { allowConcurrentRequests: false };
-      await docRef.set(defaultConfig);
-      return defaultConfig;
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return {
+          allowConcurrentRequests: data?.allowConcurrentRequests ?? false,
+        };
+      } else {
+        const defaultConfig: VacationConfig = {
+          allowConcurrentRequests: false,
+        };
+        await docRef.set(defaultConfig);
+        return defaultConfig;
+      }
+    } catch (error) {
+      console.error("Erro ao buscar config:", error);
+      return { allowConcurrentRequests: false };
     }
   },
 
