@@ -1,5 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useState, useEffect, useMemo } from "react";
 import {
   parseISO,
   isFuture,
@@ -25,28 +24,36 @@ export function useEmployeeVacations(userId: string) {
     variant: "info" as DialogVariant,
   });
 
-  const loadData = useCallback(async () => {
+  useEffect(() => {
     setLoading(true);
-    try {
-      const result = await vacationService.getUserVacations(userId);
-      setData(result as VacationItem[]);
-    } catch (error) {
-      setDialog({
-        visible: true,
-        title: "Erro",
-        message: "Não foi possível carregar seu histórico.",
-        variant: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
+
+    const unsubscribe = vacationService.subscribeUserVacations(
+      userId,
+      (vacations) => {
+        setData(vacations as VacationItem[]);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, [userId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData])
-  );
+  const loadData = async () => {
+    setLoading(true);
+
+    setTimeout(() => setLoading(false), 1000);
+  };
+
+  const sortedData = useMemo(() => {
+    return [...data].sort((a, b) => {
+      if (a.isSyncing && !b.isSyncing) return -1;
+      if (!a.isSyncing && b.isSyncing) return 1;
+
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA;
+    });
+  }, [data]);
 
   const hasPendingRequest = useMemo(
     () => data.some((item) => item.status === "PENDING"),
@@ -54,9 +61,9 @@ export function useEmployeeVacations(userId: string) {
   );
 
   const filteredData = useMemo(() => {
-    if (activeFilter === "ALL") return data;
-    return data.filter((item) => item.status === activeFilter);
-  }, [data, activeFilter]);
+    if (activeFilter === "ALL") return sortedData;
+    return sortedData.filter((item) => item.status === activeFilter);
+  }, [sortedData, activeFilter]);
 
   const heroInfo = useMemo(() => {
     const pendingCount = data.filter((i) => i.status === "PENDING").length;
@@ -121,7 +128,7 @@ export function useEmployeeVacations(userId: string) {
   }, [data]);
 
   return {
-    data,
+    data: sortedData,
     loading,
     filteredData,
     activeFilter,

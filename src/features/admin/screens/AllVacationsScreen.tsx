@@ -9,8 +9,10 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
+
+import { ArrowLeft, ClipboardList, Filter } from "lucide-react-native";
+
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 
 import { adminService } from "@/features/admin/services/adminService";
@@ -82,11 +84,7 @@ export function AllVacationsScreen() {
             onPress={() => navigation.goBack()}
             style={{ padding: 8, marginLeft: -8, borderRadius: 99 }}
           >
-            <Feather
-              name="arrow-left"
-              size={24}
-              color={isDark ? "#F3F4F6" : "#374151"}
-            />
+            <ArrowLeft size={24} color={isDark ? "#F3F4F6" : "#374151"} />
           </TouchableOpacity>
           <Text className="text-xl font-bold text-gray-800 dark:text-gray-100 ml-2">
             Auditoria Geral
@@ -178,11 +176,15 @@ export function AllVacationsScreen() {
           }
           ListEmptyComponent={
             <View className="items-center justify-center py-20 opacity-50 px-6">
-              <Feather
-                name={activeFilter === "ALL" ? "clipboard" : "filter"}
-                size={48}
-                color={isDark ? "#4B5563" : "#9CA3AF"}
-              />
+              {activeFilter === "ALL" ? (
+                <ClipboardList
+                  size={48}
+                  color={isDark ? "#4B5563" : "#9CA3AF"}
+                />
+              ) : (
+                <Filter size={48} color={isDark ? "#4B5563" : "#9CA3AF"} />
+              )}
+
               <Text className="text-gray-400 dark:text-gray-500 text-center font-bold mt-4">
                 {activeFilter === "ALL"
                   ? "Nenhuma solicitação no sistema."

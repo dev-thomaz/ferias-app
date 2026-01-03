@@ -1,6 +1,13 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import {
+  Clock,
+  ArrowRight,
+  ChevronUp,
+  ChevronDown,
+  Calendar,
+} from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { VacationRequest } from "../../types";
@@ -36,7 +43,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
               {formatShortName(request.userName)}
             </Text>
             <View className="flex-row items-center mt-1">
-              <Feather name="clock" size={12} color="#9CA3AF" />
+              <Clock size={12} color="#9CA3AF" />
               <Text className="text-gray-400 text-xs ml-1 font-medium">
                 Solicitado em {formattedDates.creation}
               </Text>
@@ -65,11 +72,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
                 {formattedDates.start}
               </Text>
             </View>
-            <Feather
-              name="arrow-right"
-              size={20}
-              color={isDark ? "#4B5563" : "#9CA3AF"}
-            />
+            <ArrowRight size={20} color={isDark ? "#4B5563" : "#9CA3AF"} />
             <View>
               <Text className="text-gray-400 text-[10px] font-bold mb-1 uppercase">
                 Até
@@ -90,11 +93,12 @@ export function AdminView({ request }: { request: VacationRequest }) {
             <Text className="font-bold text-gray-700 dark:text-gray-200">
               Observação do Colaborador
             </Text>
-            <Feather
-              name={isExpanded ? "chevron-up" : "chevron-down"}
-              size={20}
-              color="#9CA3AF"
-            />
+
+            {isExpanded ? (
+              <ChevronUp size={20} color="#9CA3AF" />
+            ) : (
+              <ChevronDown size={20} color="#9CA3AF" />
+            )}
           </View>
           <Text
             className="text-gray-500 italic leading-relaxed"
@@ -162,7 +166,7 @@ export function AdminView({ request }: { request: VacationRequest }) {
         className="absolute bottom-[-20] right-[-50] opacity-5 -z-10"
         pointerEvents="none"
       >
-        <Feather name="calendar" size={300} color={isDark ? "#FFF" : "#000"} />
+        <Calendar size={300} color={isDark ? "#FFF" : "#000"} />
       </View>
     </ScreenWrapper>
   );

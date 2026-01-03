@@ -20,6 +20,7 @@ export interface VacationRequest {
   managerObservation?: string;
 
   managerAvatarId?: string | number | null;
+  isSyncing?: boolean;
 }
 
 export type CreateVacationDTO = Omit<

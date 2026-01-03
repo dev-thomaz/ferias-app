@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { UserRole } from "../store/useAuthStore";
+import { UserRole } from "@/types";
 
 interface RoleSelectorProps {
   selectedRole: UserRole;

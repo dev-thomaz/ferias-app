@@ -2,6 +2,7 @@ export type UserRole = "GESTOR" | "COLABORADOR" | "ADMIN";
 
 export type VacationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
+export type AccountStatus = "ACTIVE" | "DISABLED" | "WAITING_APPROVAL";
 export interface VacationConfig {
   allowConcurrentRequests: boolean;
 }
@@ -14,6 +15,8 @@ export interface User {
   avatarID?: number | string | null;
   department?: string;
   admissionDate?: string;
+  accountStatus?: AccountStatus;
+  isSyncing?: boolean;
 }
 
 export interface CreateVacationDTO {

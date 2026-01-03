@@ -1,6 +1,13 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import {
+  Clock,
+  ArrowRight,
+  ChevronUp,
+  ChevronDown,
+  Calendar,
+} from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { VacationRequest } from "../../types";
@@ -11,7 +18,6 @@ import { ConfirmationSheet } from "../../components/ConfirmationSheet";
 import { Dialog } from "@/components/Dialog";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 
-// Hooks Desacoplados
 import { useVacationDetailsBase } from "../../hooks/useVacationDetailsBase";
 import { useManagerActions } from "../../hooks/useManagerActions";
 
@@ -25,11 +31,9 @@ export function ManagerView({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  // Lógica de Visualização (Compartilhada)
   const { isExpanded, duration, formattedDates, status, toggleAccordion } =
     useVacationDetailsBase(request);
 
-  // Lógica de Ação (Exclusiva Gestor)
   const {
     confirmSheetVisible,
     setConfirmSheetVisible,
@@ -63,7 +67,7 @@ export function ManagerView({
               {formatShortName(request.userName)}
             </Text>
             <View className="flex-row items-center mt-1">
-              <Feather name="clock" size={12} color="#9CA3AF" />
+              <Clock size={12} color="#9CA3AF" />
               <Text className="text-gray-400 dark:text-gray-500 text-xs ml-1">
                 Solicitado em {formattedDates.creation}
               </Text>
@@ -91,11 +95,7 @@ export function ManagerView({
                 {formattedDates.start}
               </Text>
             </View>
-            <Feather
-              name="arrow-right"
-              size={20}
-              color={isDark ? "#4B5563" : "#9CA3AF"}
-            />
+            <ArrowRight size={20} color={isDark ? "#4B5563" : "#9CA3AF"} />
             <View>
               <Text className="text-gray-400 text-[10px] font-bold mb-1 uppercase">
                 Até
@@ -116,11 +116,11 @@ export function ManagerView({
             <Text className="font-bold text-gray-700 dark:text-gray-200">
               Observação do Colaborador
             </Text>
-            <Feather
-              name={isExpanded ? "chevron-up" : "chevron-down"}
-              size={20}
-              color="#9CA3AF"
-            />
+            {isExpanded ? (
+              <ChevronUp size={20} color="#9CA3AF" />
+            ) : (
+              <ChevronDown size={20} color="#9CA3AF" />
+            )}
           </View>
           <Text
             className="text-gray-600 dark:text-gray-400 italic leading-relaxed"
@@ -227,7 +227,7 @@ export function ManagerView({
         className="absolute bottom-[-20] right-[-50] opacity-5 -z-10"
         pointerEvents="none"
       >
-        <Feather name="calendar" size={300} color={isDark ? "#FFF" : "#000"} />
+        <Calendar size={300} color={isDark ? "#FFF" : "#000"} />
       </View>
     </ScreenWrapper>
   );

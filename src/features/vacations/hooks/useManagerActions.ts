@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
+import NetInfo from "@react-native-community/netinfo";
 import { managerService } from "../services/managerService";
 import { DialogVariant } from "@/components/Dialog";
 
@@ -20,44 +21,58 @@ export function useManagerActions(requestId: string, user: any) {
   const finalSubmit = async (observation: string) => {
     setLoading(true);
     try {
+      const network = await NetInfo.fetch();
+      const isOnline = !!network.isConnected && !!network.isInternetReachable;
+
       const status = actionType === "APPROVE" ? "APPROVED" : "REJECTED";
-      const safeAvatarId =
-        user?.avatarID ?? user?.avatarId ?? user?.avatar ?? null;
+      const safeAvatarId = user?.avatarID ?? user?.avatarId ?? null;
 
-      await managerService.updateStatus(
-        requestId,
-        status,
-        user.id,
-        user.name,
-        observation || "",
-        safeAvatarId
-      );
+      managerService
+        .updateStatus(
+          requestId,
+          status,
+          user.id,
+          user.name,
+          observation || "",
+          safeAvatarId
+        )
+        .catch((err) =>
+          console.error("Erro na sincronização em background:", err)
+        );
 
-      setModalVisible(false);
-      setDialog({
-        visible: true,
-        title: "Sucesso!",
-        message: `Solicitação ${
-          actionType === "APPROVE" ? "aprovada" : "reprovada"
-        } com sucesso.`,
-        variant: "success",
-      });
+      setTimeout(() => {
+        setLoading(false);
+        setModalVisible(false);
+
+        setDialog({
+          visible: true,
+          title: isOnline ? "Sucesso!" : "Ação Registrada Offline! 📡",
+          message: isOnline
+            ? `Solicitação ${
+                actionType === "APPROVE" ? "aprovada" : "reprovada"
+              } com sucesso.`
+            : `Você está sem conexão. A decisão foi salva no dispositivo e será sincronizada automaticamente assim que a internet voltar.`,
+          variant: isOnline ? "success" : "info",
+        });
+      }, 600);
     } catch (e: any) {
+      console.error("Erro ao processar ação do gestor:", e);
+      setLoading(false);
       setDialog({
         visible: true,
-        title: "Erro na Operação",
-        message:
-          e?.response?.data?.message || "Falha ao processar. Tente novamente.",
+        title: "Ops!",
+        message: "Não foi possível registrar sua decisão. Tente novamente.",
         variant: "error",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const closeDialog = () => {
     setDialog((d) => ({ ...d, visible: false }));
-    if (dialog.variant === "success") navigation.goBack();
+
+    if (dialog.variant === "success" || dialog.variant === "info") {
+      navigation.goBack();
+    }
   };
 
   return {

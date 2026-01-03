@@ -6,15 +6,15 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F172A"
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#3093E1"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.feriasapp"
+      "bundleIdentifier": "com.seuapp.vacations"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,16 +23,29 @@
       },
       "backgroundColor": "#0F172A",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.feriasapp"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "package": "com.seuapp.vacations",
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-asset",
       "expo-font",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useLegacyPackaging": true,
+            "kotlinVersion": "1.9.25"
+          }
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "80e85823-b3f6-47b9-b7b5-1cc1f12a050a"
+      }
+    }
   }
 }

@@ -10,7 +10,9 @@ import {
   LayoutAnimation,
   StatusBar,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import { ArrowLeft, XCircle, CheckCircle } from "lucide-react-native";
+
 import { useNavigation } from "@react-navigation/native";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -166,7 +168,7 @@ export function UserApprovalScreen() {
             onPress={() => handleAction(item, "REJECT")}
             className="flex-1 py-4 bg-background-light dark:bg-background-dark active:opacity-70 items-center flex-row justify-center border-r border-gray-100 dark:border-gray-800"
           >
-            <Feather name="x-circle" size={18} color="#EF4444" />
+            <XCircle size={18} color="#EF4444" />
             <Text className="ml-2 font-bold text-gray-600 dark:text-gray-400">
               Rejeitar
             </Text>
@@ -181,11 +183,7 @@ export function UserApprovalScreen() {
               <ActivityIndicator size="small" color="#059669" />
             ) : (
               <>
-                <Feather
-                  name="check-circle"
-                  size={18}
-                  color={isDark ? "#34d399" : "#059669"}
-                />
+                <CheckCircle size={18} color={isDark ? "#34d399" : "#059669"} />
                 <Text
                   className={`ml-2 font-bold ${
                     isDark ? "text-emerald-400" : "text-emerald-700"
@@ -215,7 +213,7 @@ export function UserApprovalScreen() {
             onPress={() => navigation.goBack()}
             className="w-10 h-10 bg-purple-600 rounded-full items-center justify-center border border-purple-500"
           >
-            <Feather name="arrow-left" size={20} color="#fff" />
+            <ArrowLeft size={20} color="#fff" />
           </TouchableOpacity>
           <View className="bg-purple-600 px-3 py-1 rounded-full border border-purple-500">
             <Text className="text-purple-100 font-bold text-xs">
@@ -248,8 +246,7 @@ export function UserApprovalScreen() {
             ListEmptyComponent={
               <View className="items-center justify-center py-20 opacity-60">
                 <View className="bg-surface-light dark:bg-surface-dark p-6 rounded-full mb-4 shadow-sm">
-                  <Feather
-                    name="check-circle"
+                  <CheckCircle
                     size={48}
                     color={isDark ? "#34d399" : "#10B981"}
                   />

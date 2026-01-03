@@ -1,8 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  ChevronRight,
+  CloudOff,
+  Zap,
+} from "lucide-react-native";
 import { useColorScheme } from "nativewind";
-
 import { VacationRequest } from "../types";
 import { formatDate } from "@/utils/dateUtils";
 import { formatShortName } from "@/utils/textUtils";
@@ -49,13 +55,22 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
 
   const theme = (statusConfig as any)[item.status] || statusConfig.PENDING;
   const isPending = item.status === "PENDING";
+  const isSyncing = item.isSyncing; //
 
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      className="bg-surface-light dark:bg-surface-dark p-5 rounded-3xl mb-4 border border-gray-100 dark:border-gray-800 shadow-sm"
+      className={`bg-surface-light dark:bg-surface-dark p-5 rounded-3xl mb-4 border relative overflow-hidden ${
+        isSyncing
+          ? "border-blue-500 shadow-xl shadow-blue-500/40"
+          : "border-gray-100 dark:border-gray-800 shadow-sm"
+      }`}
     >
+      {isSyncing && (
+        <View className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500" />
+      )}
+
       <View className="flex-row justify-between items-start mb-4">
         <Text
           className="font-bold text-gray-800 dark:text-gray-100 text-lg flex-1 mr-2"
@@ -63,7 +78,6 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
         >
           {formatShortName(item.userName)}
         </Text>
-
         <View
           className={`px-3 py-1 rounded-full border ${theme.bg} ${theme.border}`}
         >
@@ -77,14 +91,13 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
 
       <View className="flex-row items-center mb-4">
         <View className="bg-background-light dark:bg-background-dark p-2.5 rounded-xl mr-3 border border-gray-50 dark:border-gray-800">
-          <Feather
-            name="calendar"
-            size={18}
-            color={isDark ? "#93C5FD" : "#6B7280"}
-          />
+          <Calendar size={18} color={isDark ? "#93C5FD" : "#6B7280"} />
         </View>
-        <View>
-          <Text className="text-gray-600 dark:text-gray-300 font-bold text-base">
+        <View className="flex-1 justify-center">
+          <Text
+            className="text-gray-600 dark:text-gray-300 font-bold text-base leading-7 py-1"
+            style={{ includeFontPadding: false, textAlignVertical: "center" }}
+          >
             {formatDate(item.startDate)}{" "}
             <Text className="text-gray-400 dark:text-gray-500 font-normal text-xs italic">
               até
@@ -107,42 +120,51 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
 
       <View className="flex-row justify-between items-center mt-2 pt-4 border-t border-gray-100 dark:border-gray-800">
         <View className="flex-1 mr-4">
-          <View className="flex-row items-center mb-1">
-            <Feather
-              name="clock"
-              size={10}
-              color={isDark ? "#6B7280" : "#9CA3AF"}
-            />
-            <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1 uppercase font-medium">
-              Criado: {formatDate(item.createdAt, "dd/MM HH:mm")}
-            </Text>
-          </View>
-
-          {!isPending && item.updatedAt && (
-            <View className="flex-row items-center">
-              <Feather
-                name="check-circle"
-                size={10}
-                color={
-                  item.status === "APPROVED" || item.status === "COMPLETED"
-                    ? "#10b981"
-                    : "#ef4444"
-                }
-              />
-              <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1 uppercase font-medium">
-                Análise: {formatDate(item.updatedAt, "dd/MM HH:mm")}
+          {isSyncing ? (
+            <View className="flex-row items-center bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-lg self-start">
+              <Zap size={12} color="#3b82f6" fill="#3b82f6" />
+              <Text className="text-blue-600 dark:text-blue-400 text-[9px] ml-1 uppercase font-black tracking-widest">
+                Dispositivo (Offline)
               </Text>
             </View>
+          ) : (
+            <>
+              <View className="flex-row items-center mb-1">
+                <Clock size={10} color={isDark ? "#6B7280" : "#9CA3AF"} />
+                <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1 uppercase font-medium">
+                  Criado: {formatDate(item.createdAt, "dd/MM HH:mm")}
+                </Text>
+              </View>
+
+              {!isPending && item.updatedAt && (
+                <View className="flex-row items-center">
+                  <CheckCircle
+                    size={10}
+                    color={
+                      item.status === "APPROVED" || item.status === "COMPLETED"
+                        ? "#10b981"
+                        : "#ef4444"
+                    }
+                  />
+                  <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1 uppercase font-medium">
+                    Análise: {formatDate(item.updatedAt, "dd/MM HH:mm")}
+                  </Text>
+                </View>
+              )}
+            </>
           )}
         </View>
 
         <View className="flex-row items-center">
+          {isSyncing && (
+            <CloudOff size={14} color="#3b82f6" style={{ marginRight: 8 }} />
+          )}
           <Text
             className={`text-xs font-black uppercase tracking-tighter mr-1 ${theme.text}`}
           >
             Detalhes
           </Text>
-          <Feather name="chevron-right" size={16} color={theme.iconColor} />
+          <ChevronRight size={16} color={theme.iconColor} />
         </View>
       </View>
     </TouchableOpacity>

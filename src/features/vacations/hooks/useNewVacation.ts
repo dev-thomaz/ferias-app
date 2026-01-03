@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { addDays, differenceInDays } from "date-fns";
+import NetInfo from "@react-native-community/netinfo";
+
 import { vacationService } from "../services/vacationService";
 import { CreateVacationDTO } from "../types";
-import { User } from "@/features/auth/store/useAuthStore";
+import { User } from "@/types";
 import { DialogVariant } from "@/components/Dialog";
 
 export function useNewVacation(user: User | null) {
@@ -32,6 +34,7 @@ export function useNewVacation(user: User | null) {
 
   const handleCreate = async () => {
     if (!user) return;
+
     if (duration <= 0) {
       setDialog({
         visible: true,
@@ -45,6 +48,9 @@ export function useNewVacation(user: User | null) {
 
     setLoading(true);
     try {
+      const network = await NetInfo.fetch();
+      const isOnline = !!network.isConnected && !!network.isInternetReachable;
+
       const requestData: CreateVacationDTO = {
         userId: user.id,
         userName: user.name,
@@ -54,28 +60,36 @@ export function useNewVacation(user: User | null) {
         observation: observation.trim(),
       };
 
-      await vacationService.createRequest(requestData);
+      vacationService
+        .createRequest(requestData)
+        .catch((err) =>
+          console.error("Erro na sincronização em background:", err)
+        );
 
-      setDialog({
-        visible: true,
-        title: "Tudo certo! 🌴",
-        message: "Sua solicitação foi enviada com sucesso.",
-        variant: "success",
-        onConfirm: () => {
-          closeDialog();
-          navigation.goBack();
-        },
-      });
+      setTimeout(() => {
+        setLoading(false);
+        setDialog({
+          visible: true,
+          title: isOnline ? "Tudo certo! 🌴" : "Salvo no dispositivo! 📡",
+          message: isOnline
+            ? "Sua solicitação foi enviada com sucesso para o gestor."
+            : "Você está offline, mas sua solicitação foi salva e será sincronizada assim que houver conexão.",
+          variant: isOnline ? "success" : "info",
+          onConfirm: () => {
+            setDialog((d) => ({ ...d, visible: false }));
+            navigation.goBack();
+          },
+        });
+      }, 600);
     } catch (error: any) {
+      setLoading(false);
       setDialog({
         visible: true,
-        title: "Erro",
-        message: error?.message || "Não foi possível criar a solicitação.",
+        title: "Erro inesperado",
+        message: "Não foi possível processar a solicitação.",
         variant: "error",
         onConfirm: closeDialog,
       });
-    } finally {
-      setLoading(false);
     }
   };
 

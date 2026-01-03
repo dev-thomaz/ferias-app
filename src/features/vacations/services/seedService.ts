@@ -1,7 +1,6 @@
-import { auth, db } from "@/config/firebase";
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, setDoc, collection, addDoc } from "firebase/firestore";
-import { UserRole } from "@/features/auth/store/useAuthStore";
+import { authInstance, db } from "@/config/firebase";
+import firestore from "@react-native-firebase/firestore";
+import { UserRole } from "@/types";
 
 const FIRST_NAMES_M = [
   "João",
@@ -38,7 +37,7 @@ const LAST_NAMES = [
 
 export const seedService = {
   async run() {
-    console.log("🚀 Iniciando Seed (Admin Auditor / Gestor Operacional)...");
+    console.log("🚀 Iniciando Seed Nativo (Admin / Gestor / Colaborador)...");
 
     const operationalManagers: {
       id: string;
@@ -69,20 +68,20 @@ export const seedService = {
 
     for (const u of usersToCreate) {
       try {
-        const cred = await createUserWithEmailAndPassword(
-          auth,
+        const cred = await authInstance.createUserWithEmailAndPassword(
           u.email,
           "123456"
         );
         const uid = cred.user.uid;
 
-        await setDoc(doc(db, "users", uid), {
+        await db.collection("users").doc(uid).set({
           name: u.fullName,
           email: u.email,
           role: u.role,
           avatarID: u.avatarID,
           accountStatus: "ACTIVE",
-          createdAt: new Date(2025, 0, 1).toISOString(),
+
+          createdAt: firestore.FieldValue.serverTimestamp(),
         });
 
         if (u.role === "GESTOR") {
@@ -108,8 +107,8 @@ export const seedService = {
       }
     }
 
-    await signOut(auth);
-    console.log("🏁 Seed finalizado com as regras de negócio aplicadas!");
+    await authInstance.signOut();
+    console.log("🏁 Seed finalizado!");
   },
 
   async generateVacations(
@@ -131,7 +130,7 @@ export const seedService = {
       const month = Math.floor(Math.random() * 11);
       const day = Math.floor(Math.random() * 15) + 1;
 
-      await addDoc(collection(db, "vacations"), {
+      await db.collection("vacations").add({
         userId: uid,
         userName: uName,
         userAvatarId: uAvatar,
@@ -141,13 +140,16 @@ export const seedService = {
         status: status,
         startDate: new Date(year, month, day).toISOString(),
         endDate: new Date(year, month, day + 15).toISOString(),
-        createdAt: new Date(year, month - 1, day).toISOString(),
-        updatedAt: new Date(year, month - 1, day + 2).toISOString(),
+
+        createdAt: firestore.Timestamp.fromDate(new Date(year, month - 1, day)),
+        updatedAt: firestore.Timestamp.fromDate(
+          new Date(year, month - 1, day + 2)
+        ),
         observation: "",
         managerObservation:
           status === "COMPLETED"
             ? "Aproveite o descanso!"
-            : "Indisponibilidade por pico de demanda.",
+            : "Indisponibilidade por demanda.",
       });
     }
 
@@ -155,7 +157,7 @@ export const seedService = {
       operationalManagers[
         Math.floor(Math.random() * operationalManagers.length)
       ];
-    await addDoc(collection(db, "vacations"), {
+    await db.collection("vacations").add({
       userId: uid,
       userName: uName,
       userAvatarId: uAvatar,
@@ -165,8 +167,8 @@ export const seedService = {
       status: "APPROVED",
       startDate: new Date(2026, 5, 10).toISOString(),
       endDate: new Date(2026, 5, 25).toISOString(),
-      createdAt: new Date(2026, 0, 1).toISOString(),
-      updatedAt: new Date(2026, 0, 1, 10, 0, 0).toISOString(),
+      createdAt: firestore.FieldValue.serverTimestamp(),
+      updatedAt: firestore.FieldValue.serverTimestamp(),
       observation: "Viagem programada.",
       managerObservation: "Aprovado conforme solicitação.",
     });

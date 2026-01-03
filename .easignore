@@ -1,0 +1,9 @@
+node_modules
+.expo
+.git
+android/app/build
+android/app/src/main/assets
+dist
+web-build
+*.apk
+*.aab

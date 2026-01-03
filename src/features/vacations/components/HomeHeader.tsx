@@ -1,10 +1,17 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import {
+  Briefcase,
+  User as UserIcon,
+  Sun,
+  Moon,
+  LogOut,
+} from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 import { Avatar } from "@/components/Avatar";
 import { formatShortName } from "@/utils/textUtils";
-import { User } from "@/features/auth/store/useAuthStore";
+import { User } from "@/types";
 
 interface HomeHeaderProps {
   user: User;
@@ -31,20 +38,36 @@ export function HomeHeader({ user, onLogout }: HomeHeaderProps) {
                 : "bg-emerald-100 dark:bg-emerald-900/30"
             }`}
           >
-            <Feather
-              name={isManager ? "briefcase" : "user"}
-              size={12}
-              color={
-                isManager
-                  ? isDark
-                    ? "#60A5FA"
-                    : "#1D4ED8"
-                  : isDark
-                  ? "#34D399"
-                  : "#047857"
-              }
-              style={{ marginRight: 6 }}
-            />
+            {isManager ? (
+              <Briefcase
+                size={12}
+                color={
+                  isManager
+                    ? isDark
+                      ? "#60A5FA"
+                      : "#1D4ED8"
+                    : isDark
+                    ? "#34D399"
+                    : "#047857"
+                }
+                style={{ marginRight: 6 }}
+              />
+            ) : (
+              <UserIcon
+                size={12}
+                color={
+                  isManager
+                    ? isDark
+                      ? "#60A5FA"
+                      : "#1D4ED8"
+                    : isDark
+                    ? "#34D399"
+                    : "#047857"
+                }
+                style={{ marginRight: 6 }}
+              />
+            )}
+
             <Text
               className={`text-xs font-bold uppercase tracking-wide ${
                 isManager
@@ -73,18 +96,18 @@ export function HomeHeader({ user, onLogout }: HomeHeaderProps) {
           onPress={toggleColorScheme}
           className="bg-surface-light dark:bg-surface-dark p-3.5 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
         >
-          <Feather
-            name={isDark ? "sun" : "moon"}
-            size={22}
-            color={isDark ? "#FBBF24" : isManager ? "#1D4ED8" : "#6B7280"}
-          />
+          {isDark ? (
+            <Sun size={22} color="#FBBF24" />
+          ) : (
+            <Moon size={22} color={isManager ? "#1D4ED8" : "#6B7280"} />
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={onLogout}
           className="bg-surface-light dark:bg-surface-dark p-3.5 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
         >
-          <Feather name="log-out" size={22} color="#EF4444" />
+          <LogOut size={22} color="#EF4444" />
         </TouchableOpacity>
       </View>
     </View>

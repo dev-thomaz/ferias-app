@@ -1,20 +1,19 @@
 import { db } from "@/config/firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  doc,
-  updateDoc,
-  Timestamp,
-  DocumentData,
-  QueryDocumentSnapshot,
-} from "firebase/firestore";
+import firestore, {
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
 import { VacationRequest, VacationStatus } from "../types";
 
+const formatFirestoreDate = (dateField: any): string => {
+  if (!dateField) return new Date().toISOString();
+  if (typeof dateField.toDate === "function")
+    return dateField.toDate().toISOString();
+  if (typeof dateField === "string") return dateField;
+  return new Date().toISOString();
+};
+
 const mapDocument = (
-  doc: QueryDocumentSnapshot<DocumentData>
+  doc: FirebaseFirestoreTypes.QueryDocumentSnapshot
 ): VacationRequest => {
   const data = doc.data();
   return {
@@ -27,39 +26,37 @@ const mapDocument = (
     observation: data.observation,
     status: data.status as VacationStatus,
 
-    createdAt:
-      data.createdAt instanceof Timestamp
-        ? data.createdAt.toDate().toISOString()
-        : data.createdAt,
+    createdAt: formatFirestoreDate(data.createdAt),
+    updatedAt: formatFirestoreDate(data.updatedAt),
 
-    updatedAt: data.updatedAt,
     managedBy: data.managedBy,
     managerName: data.managerName,
     managerAvatarId: data.managerAvatarId,
     managerObservation: data.managerObservation,
+
+    isSyncing: doc.metadata.hasPendingWrites,
   };
 };
 
 export const managerService = {
   async getPendingRequests(): Promise<VacationRequest[]> {
-    const q = query(
-      collection(db, "vacations"),
-      where("status", "==", "PENDING"),
-      orderBy("createdAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
+    const snapshot = await db
+      .collection("vacations")
+      .where("status", "==", "PENDING")
+      .orderBy("createdAt", "desc")
+      .get();
 
-    return querySnapshot.docs.map(mapDocument);
+    return snapshot.docs.map(mapDocument);
   },
 
   async getManagerHistory(managerId: string): Promise<VacationRequest[]> {
-    const q = query(
-      collection(db, "vacations"),
-      where("managedBy", "==", managerId),
-      orderBy("updatedAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(mapDocument);
+    const snapshot = await db
+      .collection("vacations")
+      .where("managedBy", "==", managerId)
+      .orderBy("updatedAt", "desc")
+      .get();
+
+    return snapshot.docs.map(mapDocument);
   },
 
   async updateStatus(
@@ -70,14 +67,18 @@ export const managerService = {
     managerObservation?: string,
     managerAvatarId?: string | number
   ): Promise<void> {
-    const docRef = doc(db, "vacations", requestId);
-    await updateDoc(docRef, {
-      status,
-      managedBy: managerId,
-      managerName,
-      managerObservation,
-      managerAvatarId,
-      updatedAt: new Date().toISOString(),
-    });
+    try {
+      await db.collection("vacations").doc(requestId).update({
+        status,
+        managedBy: managerId,
+        managerName,
+        managerObservation,
+        managerAvatarId,
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar status das férias:", error);
+      throw error;
+    }
   },
 };

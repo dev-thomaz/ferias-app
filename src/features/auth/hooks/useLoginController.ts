@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Keyboard, LayoutAnimation } from "react-native";
-import { useAuthStore, UserRole } from "../store/useAuthStore";
+import { useAuthStore } from "../store/useAuthStore";
+import { UserRole } from "@/types";
 import { authService } from "../services/authService";
 import { DialogVariant } from "@/components/Dialog";
 

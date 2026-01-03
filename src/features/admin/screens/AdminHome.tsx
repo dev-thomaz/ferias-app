@@ -5,14 +5,25 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import {
+  Shield,
+  Sun,
+  Moon,
+  LogOut,
+  UserPlus,
+  CheckCircle,
+  ArrowRight,
+  Users,
+  Calendar,
+} from "lucide-react-native";
+
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useColorScheme } from "nativewind";
 
-import { User } from "@/features/auth/store/useAuthStore";
+import { User } from "@/types";
 import { Avatar } from "@/components/Avatar";
 import { formatShortName } from "@/utils/textUtils";
 import { adminService } from "@/features/admin/services/adminService";
@@ -87,8 +98,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
               </View>
               <View>
                 <View className="self-start px-3 py-1 rounded-md mb-1.5 flex-row items-center bg-purple-500/30 border border-purple-400/30">
-                  <Feather
-                    name="shield"
+                  <Shield
                     size={12}
                     color="#E9D5FF"
                     style={{ marginRight: 6 }}
@@ -111,18 +121,18 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
                 onPress={toggleColorScheme}
                 className="bg-purple-600 p-3 rounded-full border border-purple-500 shadow-sm"
               >
-                <Feather
-                  name={isDark ? "sun" : "moon"}
-                  size={20}
-                  color="#E9D5FF"
-                />
+                {isDark ? (
+                  <Sun size={20} color="#E9D5FF" />
+                ) : (
+                  <Moon size={20} color="#E9D5FF" />
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={onLogout}
                 className="bg-purple-600 p-3 rounded-full border border-purple-500 shadow-sm"
               >
-                <Feather name="log-out" size={20} color="#E9D5FF" />
+                <LogOut size={20} color="#E9D5FF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -136,11 +146,11 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
                   hasPending ? "bg-orange-100" : "bg-green-100"
                 }`}
               >
-                <Feather
-                  name={hasPending ? "user-plus" : "check-circle"}
-                  size={24}
-                  color={hasPending ? "#EA580C" : "#16A34A"}
-                />
+                {hasPending ? (
+                  <UserPlus size={24} color="#EA580C" />
+                ) : (
+                  <CheckCircle size={24} color="#16A34A" />
+                )}
               </View>
               <View
                 className={`px-3 py-1 rounded-full ${
@@ -181,9 +191,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
               >
                 {hasPending ? "Revisar Cadastros" : "Nenhuma Pendência"}
               </Text>
-              {hasPending && (
-                <Feather name="arrow-right" size={16} color="#FFF" />
-              )}
+              {hasPending && <ArrowRight size={16} color="#FFF" />}
             </TouchableOpacity>
           </View>
 
@@ -197,7 +205,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
               className="flex-1 bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm active:opacity-70"
             >
               <View className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 rounded-full items-center justify-center mb-3">
-                <Feather name="users" size={20} color="#2563EB" />
+                <Users size={20} color="#2563EB" />
               </View>
               <Text className="font-bold text-gray-800 dark:text-gray-100 text-base mb-1">
                 Colaboradores
@@ -210,7 +218,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
               className="flex-1 bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm active:opacity-70"
             >
               <View className="bg-emerald-100 dark:bg-emerald-900/30 w-10 h-10 rounded-full items-center justify-center mb-3">
-                <Feather name="calendar" size={20} color="#059669" />
+                <Calendar size={20} color="#059669" />
               </View>
               <Text className="font-bold text-gray-800 dark:text-gray-100 text-base mb-1">
                 Todas as Férias

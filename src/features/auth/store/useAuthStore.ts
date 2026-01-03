@@ -10,6 +10,8 @@ export interface User {
   email: string;
   role: UserRole;
   avatarID?: number | null;
+  accountStatus?: "ACTIVE" | "DISABLED" | "WAITING_APPROVAL";
+  isSyncing?: boolean;
 }
 
 interface AuthState {

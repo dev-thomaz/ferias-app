@@ -6,12 +6,11 @@ import {
   DarkTheme,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import { useColorScheme } from "nativewind";
 
-import { auth, db } from "@/config/firebase";
+import { authInstance } from "@/config/firebase";
 import { useAuthStore } from "../features/auth/store/useAuthStore";
+import { authService } from "../features/auth/services/authService";
 
 import { LoginScreen } from "../features/auth/screens/LoginScreen";
 import { HomeScreen } from "../features/vacations/screens/Home/index";
@@ -23,59 +22,19 @@ import { EmployeesListScreen } from "../features/admin/screens/EmployeesListScre
 
 const Stack = createNativeStackNavigator();
 
-const AppDarkTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: "#0F172A",
-    card: "#1E293B",
-    text: "#F1F5F9",
-    border: "#334155",
-  },
-};
-
-const AppLightTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: "#F8FAFC",
-    card: "#FFFFFF",
-  },
-};
-
 export function Routes() {
-  const { isAuthenticated, user, setUser, logout } = useAuthStore();
+  const { isAuthenticated, setUser, logout } = useAuthStore();
   const [loadingCheck, setLoadingCheck] = useState(true);
   const { colorScheme } = useColorScheme();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const subscriber = authInstance.onAuthStateChanged(async (nativeUser) => {
       try {
-        if (firebaseUser) {
-          if (user?.id === firebaseUser.uid && user?.avatarID !== undefined) {
-            setLoadingCheck(false);
-            return;
-          }
+        if (nativeUser) {
+          const userProfile = await authService.getUserProfile(nativeUser.uid);
 
-          const docRef = doc(db, "users", firebaseUser.uid);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-
-            if (userData.accountStatus !== "ACTIVE") {
-              logout();
-              setLoadingCheck(false);
-              return;
-            }
-
-            setUser({
-              id: firebaseUser.uid,
-              name: userData.name || firebaseUser.displayName || "Usuário",
-              email: firebaseUser.email!,
-              role: userData.role,
-              avatarID: userData.avatarID,
-            });
+          if (userProfile) {
+            setUser(userProfile);
           } else {
             logout();
           }
@@ -83,73 +42,55 @@ export function Routes() {
           logout();
         }
       } catch (error) {
-        console.error("Erro ao sincronizar usuário:", error);
+        console.error("Erro na verificação de sessão:", error);
         logout();
       } finally {
         setLoadingCheck(false);
       }
     });
 
-    return () => unsubscribe();
+    return subscriber;
   }, []);
 
   if (loadingCheck) {
     return (
-      <View className="flex-1 justify-center items-center bg-background-light dark:bg-background-dark">
-        <ActivityIndicator size="large" color="#059669" />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colorScheme === "dark" ? "#0F172A" : "#F8FAFC",
+        }}
+      >
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }
 
-  return (
-    <NavigationContainer
-      theme={colorScheme === "dark" ? AppDarkTheme : AppLightTheme}
-    >
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
+  const theme = colorScheme === "dark" ? DarkTheme : DefaultTheme;
 
-          contentStyle: {
-            backgroundColor: colorScheme === "dark" ? "#0F172A" : "#F8FAFC",
-          },
-        }}
-      >
+  return (
+    <NavigationContainer theme={theme}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <Stack.Screen name="Login" component={LoginScreen} />
         ) : (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
-
             <Stack.Screen
               name="NewVacation"
               component={NewVacationScreen}
-              options={{
-                presentation: "modal",
-                animation: "slide_from_bottom",
-              }}
+              options={{ presentation: "modal" }}
             />
-
             <Stack.Screen
               name="VacationDetails"
               component={VacationDetailsScreen}
-              options={{ animation: "slide_from_right" }}
             />
-
-            <Stack.Screen
-              name="UserApproval"
-              component={UserApprovalScreen}
-              options={{ animation: "slide_from_right" }}
-            />
-
-            <Stack.Screen
-              name="AllVacations"
-              component={AllVacationsScreen}
-              options={{ animation: "slide_from_right" }}
-            />
+            <Stack.Screen name="UserApproval" component={UserApprovalScreen} />
+            <Stack.Screen name="AllVacations" component={AllVacationsScreen} />
             <Stack.Screen
               name="EmployeesList"
               component={EmployeesListScreen}
-              options={{ animation: "slide_from_right" }}
             />
           </>
         )}

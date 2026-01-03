@@ -8,7 +8,8 @@ import {
   Animated,
   Dimensions,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import { CheckCircle, XCircle } from "lucide-react-native";
 
 interface DecisionSheetProps {
   visible: boolean;
@@ -71,8 +72,7 @@ export function DecisionSheet({
                   onPress={() => onSelect("APPROVE")}
                   className="bg-emerald-600 p-4 rounded-xl flex-row justify-center items-center shadow-emerald-200 shadow-lg"
                 >
-                  <Feather
-                    name="check-circle"
+                  <CheckCircle
                     size={20}
                     color="#FFF"
                     style={{ marginRight: 8 }}
@@ -87,8 +87,7 @@ export function DecisionSheet({
                   onPress={() => onSelect("REJECT")}
                   className="bg-rose-50 p-4 rounded-xl flex-row justify-center items-center border border-rose-100"
                 >
-                  <Feather
-                    name="x-circle"
+                  <XCircle
                     size={20}
                     color="#E11D48"
                     style={{ marginRight: 8 }}

@@ -7,7 +7,8 @@ import {
   TouchableWithoutFeedback,
   Animated,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import { CheckCircle, XCircle } from "lucide-react-native";
 
 interface ConfirmationSheetProps {
   visible: boolean;
@@ -41,7 +42,8 @@ export function ConfirmationSheet({
   const colorClass = isApprove ? "text-emerald-600" : "text-rose-600";
   const bgButtonClass = isApprove ? "bg-emerald-600" : "bg-rose-600";
   const shadowClass = isApprove ? "shadow-emerald-200" : "shadow-rose-200";
-  const icon = isApprove ? "check-circle" : "x-circle";
+
+  const Icon = isApprove ? CheckCircle : XCircle;
 
   return (
     <Modal
@@ -67,18 +69,14 @@ export function ConfirmationSheet({
                     isApprove ? "bg-emerald-100" : "bg-rose-100"
                   }`}
                 >
-                  <Feather
-                    name={icon}
-                    size={40}
-                    color={isApprove ? "#059669" : "#E11D48"}
-                  />
+                  <Icon size={40} color={isApprove ? "#059669" : "#E11D48"} />
                 </View>
                 <Text className={`text-2xl font-bold ${colorClass} mb-2`}>
                   {title}
                 </Text>
                 <Text className="text-gray-500 dark:text-gray-400 text-center px-4 leading-6">
                   Essa ação notificará o colaborador imediatamente e{" "}
-                  <Text className="font-bold text-gray-700">
+                  <Text className="font-bold text-gray-300">
                     não poderá ser desfeita
                   </Text>
                   .

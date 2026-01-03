@@ -9,7 +9,8 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { addDays } from "date-fns";
-import { Feather } from "@expo/vector-icons";
+
+import { ArrowLeft, Calendar } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
@@ -49,11 +50,7 @@ export function NewVacationScreen() {
           onPress={() => navigation.goBack()}
           className="p-2 -ml-2"
         >
-          <Feather
-            name="arrow-left"
-            size={24}
-            color={isDark ? "#F3F4F6" : "#374151"}
-          />
+          <ArrowLeft size={24} color={isDark ? "#F3F4F6" : "#374151"} />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-800 dark:text-gray-100 ml-2">
           Agendar Férias
@@ -91,8 +88,7 @@ export function NewVacationScreen() {
                 Início
               </Text>
               <View className="flex-row items-center">
-                <Feather
-                  name="calendar"
+                <Calendar
                   size={16}
                   color="#6B7280"
                   style={{ marginRight: 8 }}
@@ -115,8 +111,7 @@ export function NewVacationScreen() {
                 Fim
               </Text>
               <View className="flex-row items-center">
-                <Feather
-                  name="calendar"
+                <Calendar
                   size={16}
                   color={duration <= 0 ? "#E11D48" : "#6B7280"}
                   style={{ marginRight: 8 }}

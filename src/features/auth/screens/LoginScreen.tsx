@@ -1,7 +1,7 @@
-// src/features/auth/screens/LoginScreen.tsx
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { Mail, Lock } from "lucide-react-native";
 
 import { useLoginController } from "../hooks/useLoginController";
 import { Button } from "@/components/Button";
@@ -51,7 +51,7 @@ export function LoginScreen() {
 
         <View className="gap-y-4 mb-6">
           <Input
-            icon="mail"
+            icon={Mail}
             placeholder="E-mail corporativo"
             value={email}
             onChangeText={setEmail}
@@ -59,7 +59,7 @@ export function LoginScreen() {
           />
 
           <Input
-            icon="lock"
+            icon={Lock}
             placeholder="Senha"
             value={password}
             onChangeText={setPassword}

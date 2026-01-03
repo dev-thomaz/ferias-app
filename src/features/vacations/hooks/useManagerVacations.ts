@@ -1,11 +1,29 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { LayoutAnimation } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { managerService } from "../services/managerService";
-import { VacationRequest } from "../types";
+import { db } from "@/config/firebase";
+import { VacationRequest, VacationStatus } from "../types";
 import { DialogVariant } from "@/components/Dialog";
 
 type TabType = "PENDING" | "HISTORY";
+
+const formatFirestoreDate = (dateField: any): string => {
+  if (!dateField) return new Date().toISOString();
+  if (typeof dateField.toDate === "function")
+    return dateField.toDate().toISOString();
+  if (typeof dateField === "string") return dateField;
+  return new Date().toISOString();
+};
+
+const mapDocument = (doc: any): VacationRequest => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: formatFirestoreDate(data.createdAt),
+    updatedAt: formatFirestoreDate(data.updatedAt),
+    isSyncing: doc.metadata.hasPendingWrites,
+  };
+};
 
 export function useManagerVacations(userId: string) {
   const [data, setData] = useState<VacationRequest[]>([]);
@@ -19,42 +37,52 @@ export function useManagerVacations(userId: string) {
     variant: "info" as DialogVariant,
   });
 
-  const loadData = useCallback(async () => {
+  useEffect(() => {
     setLoading(true);
-    try {
-      let result;
-      if (activeTab === "PENDING") {
-        result = await managerService.getPendingRequests();
-      } else {
-        result = await managerService.getManagerHistory(userId);
-      }
-      setData(result);
-    } catch (error) {
-      setDialog({
-        visible: true,
-        title: "Erro",
-        message: "Não foi possível carregar os dados.",
-        variant: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab, userId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData])
-  );
+    let query = db.collection("vacations");
+
+    if (activeTab === "PENDING") {
+      query = query.where("status", "==", "PENDING") as any;
+    } else {
+      query = query.where("managedBy", "==", userId) as any;
+    }
+
+    const unsubscribe = query
+      .orderBy(activeTab === "PENDING" ? "createdAt" : "updatedAt", "desc")
+      .onSnapshot(
+        (snapshot) => {
+          const mappedData = snapshot.docs.map(mapDocument);
+          setData(mappedData);
+          setLoading(false);
+        },
+        (error) => {
+          console.error("Erro no listener do Gestor:", error);
+          setDialog({
+            visible: true,
+            title: "Erro de Conexão",
+            message: "Não foi possível sincronizar os dados.",
+            variant: "error",
+          });
+          setLoading(false);
+        }
+      );
+
+    return () => unsubscribe();
+  }, [activeTab, userId]);
 
   const sortedData = useMemo(() => {
     return [...data].sort((a, b) => {
+      if (a.isSyncing && !b.isSyncing) return -1;
+      if (!a.isSyncing && b.isSyncing) return 1;
+
       const dateA = new Date(
-        activeTab === "PENDING" ? a.createdAt : a.updatedAt || ""
+        activeTab === "PENDING" ? a.createdAt : a.updatedAt!
       ).getTime();
       const dateB = new Date(
-        activeTab === "PENDING" ? b.createdAt : b.updatedAt || ""
+        activeTab === "PENDING" ? b.createdAt : b.updatedAt!
       ).getTime();
+
       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
   }, [data, sortOrder, activeTab]);
@@ -78,7 +106,7 @@ export function useManagerVacations(userId: string) {
     setDialog,
     toggleSort,
     changeTab,
-    loadData,
+    loadData: () => {},
     totalCount: data.length,
   };
 }

@@ -1,19 +1,25 @@
 import { db } from "@/config/firebase";
-import {
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  Timestamp,
-  DocumentData,
-  QueryDocumentSnapshot,
-} from "firebase/firestore";
+import firestore, {
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
 import { VacationRequest, CreateVacationDTO, VacationStatus } from "../types";
 
+const formatFirestoreDate = (dateField: any): string => {
+  if (!dateField) return new Date().toISOString();
+
+  if (typeof dateField.toDate === "function") {
+    return dateField.toDate().toISOString();
+  }
+
+  if (typeof dateField === "string") {
+    return dateField;
+  }
+
+  return new Date().toISOString();
+};
+
 const mapDocument = (
-  doc: QueryDocumentSnapshot<DocumentData>
+  doc: FirebaseFirestoreTypes.QueryDocumentSnapshot
 ): VacationRequest => {
   const data = doc.data();
   return {
@@ -26,37 +32,66 @@ const mapDocument = (
     observation: data.observation,
     status: data.status as VacationStatus,
 
-    createdAt:
-      data.createdAt instanceof Timestamp
-        ? data.createdAt.toDate().toISOString()
-        : data.createdAt,
+    createdAt: formatFirestoreDate(data.createdAt),
+    updatedAt: formatFirestoreDate(data.updatedAt),
 
-    updatedAt: data.updatedAt,
     managedBy: data.managedBy,
     managerName: data.managerName,
     managerAvatarId: data.managerAvatarId,
     managerObservation: data.managerObservation,
+
+    isSyncing: doc.metadata.hasPendingWrites,
   };
 };
 
 export const vacationService = {
   async createRequest(data: CreateVacationDTO): Promise<string> {
-    const docRef = await addDoc(collection(db, "vacations"), {
-      ...data,
-      status: "PENDING",
+    try {
+      const docRef = await db.collection("vacations").add({
+        ...data,
+        status: "PENDING",
+        createdAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error("Erro ao criar solicitação:", error);
+      throw error;
+    }
+  },
 
-      createdAt: new Date().toISOString(),
-    });
-    return docRef.id;
+  subscribeUserVacations(
+    userId: string,
+    onUpdate: (vacations: VacationRequest[]) => void
+  ) {
+    return db
+      .collection("vacations")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .onSnapshot(
+        (querySnapshot) => {
+          if (!querySnapshot) return;
+          const vacations = querySnapshot.docs.map(mapDocument);
+          onUpdate(vacations);
+        },
+        (error) => {
+          console.error("Erro no subscription de férias:", error);
+        }
+      );
   },
 
   async getUserVacations(userId: string): Promise<VacationRequest[]> {
-    const q = query(
-      collection(db, "vacations"),
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(mapDocument);
+    try {
+      const snapshot = await db
+        .collection("vacations")
+        .where("userId", "==", userId)
+        .orderBy("createdAt", "desc")
+        .get();
+
+      return snapshot.docs.map(mapDocument);
+    } catch (error) {
+      console.error("Erro ao buscar férias do usuário:", error);
+      throw error;
+    }
   },
 };

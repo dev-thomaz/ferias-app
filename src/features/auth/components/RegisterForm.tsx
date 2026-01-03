@@ -1,9 +1,12 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+
+import { User } from "lucide-react-native";
+
 import { Input } from "@/components/Input";
 import { RoleSelector } from "./RoleSelector";
 import { AvatarSelector } from "./AvatarSelector";
-import { UserRole } from "../store/useAuthStore";
+import { UserRole } from "@/types";
 
 interface RegisterFormProps {
   name: string;
@@ -31,7 +34,7 @@ export function RegisterForm({
   return (
     <View className="gap-y-4">
       <Input
-        icon="user"
+        icon={User}
         placeholder="Nome Completo"
         value={name}
         onChangeText={setName}

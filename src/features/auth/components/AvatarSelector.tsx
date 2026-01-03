@@ -6,7 +6,8 @@ import {
   Switch,
   LayoutAnimation,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+
+import { Smile, User } from "lucide-react-native";
 
 interface AvatarSelectorProps {
   useAvatar: boolean;
@@ -25,7 +26,7 @@ export function AvatarSelector({
     <View className="mb-2 bg-background-light dark:bg-background-dark p-3 rounded-xl border border-gray-100 dark:border-gray-800">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center">
-          <Feather name="smile" size={18} color="#9CA3AF" />
+          <Smile size={18} color="#9CA3AF" />
           <Text className="text-gray-600 dark:text-gray-400 font-medium ml-2">
             Usar avatar personalizado?
           </Text>
@@ -57,8 +58,7 @@ export function AvatarSelector({
                   : "bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-700"
               }`}
             >
-              <Feather
-                name="user"
+              <User
                 size={16}
                 color={
                   gender === g ? (g === "M" ? "#1D4ED8" : "#BE185D") : "#9CA3AF"

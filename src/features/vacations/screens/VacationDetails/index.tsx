@@ -1,7 +1,8 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StatusBar } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+
+import { ArrowLeft } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
@@ -47,11 +48,7 @@ export function VacationDetailsScreen() {
           onPress={() => navigation.goBack()}
           className="p-2 -ml-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800"
         >
-          <Feather
-            name="arrow-left"
-            size={24}
-            color={isDark ? "#F3F4F6" : "#374151"}
-          />
+          <ArrowLeft size={24} color={isDark ? "#F3F4F6" : "#374151"} />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-800 dark:text-gray-100 ml-2">
           Detalhes da Solicitação

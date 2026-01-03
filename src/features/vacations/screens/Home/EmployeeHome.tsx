@@ -9,15 +9,24 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Feather } from "@expo/vector-icons";
+
+import {
+  Plus,
+  Layers,
+  Calendar,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  LucideIcon,
+  CloudOff,
+} from "lucide-react-native";
 
 import { VacationRequest } from "../../types";
 import { VacationCard } from "../../components/VacationCard";
 import { Dialog } from "@/components/Dialog";
-import { User } from "@/features/auth/store/useAuthStore";
+import { User } from "@/types";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { useEmployeeVacations } from "../../hooks/useEmployeeVacations";
-
 import { HomeHeader } from "../../components/HomeHeader";
 
 type EmployeeStackParamList = {
@@ -31,6 +40,21 @@ interface EmployeeHomeProps {
   user: User;
   onLogout: () => void;
 }
+
+const getIconComponent = (iconName: string): LucideIcon => {
+  switch (iconName) {
+    case "clock":
+      return Clock;
+    case "check-circle":
+      return CheckCircle;
+    case "alert-circle":
+      return AlertCircle;
+    case "calendar":
+      return Calendar;
+    default:
+      return Calendar;
+  }
+};
 
 export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
   const navigation = useNavigation<EmployeeNavigationProp>();
@@ -47,13 +71,14 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
     loadData,
   } = useEmployeeVacations(user.id);
 
+  const isSyncingAnything = filteredData.some((item) => item.isSyncing);
+
   const FilterTabs = () => (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       className="pl-6 mb-4 mt-2"
       contentContainerStyle={{ paddingRight: 24 }}
-      keyboardShouldPersistTaps="handled"
     >
       {[
         { id: "ALL", label: "Todos" },
@@ -85,9 +110,10 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
     </ScrollView>
   );
 
+  const HeroIcon = getIconComponent(heroInfo.icon);
+
   const ListHeader = () => (
     <View className="mb-2">
-      {/* Componente Desacoplado que centraliza Perfil/Tema/Logout */}
       <HomeHeader user={user} onLogout={onLogout} />
 
       <View className="mx-6 p-6 rounded-3xl bg-emerald-600 shadow-lg shadow-emerald-500/30 mb-6">
@@ -105,7 +131,7 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
             </Text>
           </View>
           <View className="bg-white/20 p-3 rounded-2xl">
-            <Feather name={heroInfo.icon} size={28} color="#FFF" />
+            <HeroIcon size={28} color="#FFF" />
           </View>
         </View>
         <Text className="text-white/80 text-xs mt-4 font-medium">
@@ -113,9 +139,20 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
         </Text>
       </View>
 
-      <Text className="text-lg font-bold text-gray-800 dark:text-gray-100 px-6 mb-2">
-        Histórico
-      </Text>
+      <View className="flex-row justify-between items-center px-6 mb-2">
+        <Text className="text-lg font-bold text-gray-800 dark:text-gray-100">
+          Histórico
+        </Text>
+
+        {isSyncingAnything && (
+          <View className="flex-row items-center bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
+            <CloudOff size={10} color="#D97706" />
+            <Text className="text-[9px] text-amber-700 dark:text-amber-500 font-bold ml-1 uppercase">
+              Sincronizando...
+            </Text>
+          </View>
+        )}
+      </View>
       <FilterTabs />
     </View>
   );
@@ -147,7 +184,7 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
         }
         ListEmptyComponent={
           <View className="items-center py-20 opacity-40">
-            <Feather name="layers" size={48} color="#9CA3AF" />
+            <Layers size={48} color="#9CA3AF" />
             <Text className="text-gray-500 mt-4">
               Nenhuma solicitação encontrada.
             </Text>
@@ -161,7 +198,7 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
           className="absolute bottom-8 right-6 bg-emerald-600 flex-row items-center px-6 py-4 rounded-full shadow-xl shadow-emerald-600/40"
           onPress={() => navigation.navigate("NewVacation")}
         >
-          <Feather name="plus" size={24} color="#FFF" />
+          <Plus size={24} color="#FFF" />
           <Text className="text-white font-bold ml-2">Nova Solicitação</Text>
         </TouchableOpacity>
       )}
