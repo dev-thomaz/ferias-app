@@ -8,15 +8,21 @@ import {
   Text,
 } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
-
 import { WifiOff } from "lucide-react-native";
+import { Loading } from "./Loading";
 
 interface Props extends ScrollViewProps {
   children: React.ReactNode;
   withScroll?: boolean;
+  isLoading?: boolean;
 }
 
-export function ScreenWrapper({ children, withScroll = true, ...rest }: Props) {
+export function ScreenWrapper({
+  children,
+  withScroll = true,
+  isLoading = false,
+  ...rest
+}: Props) {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
@@ -24,9 +30,12 @@ export function ScreenWrapper({ children, withScroll = true, ...rest }: Props) {
       const online = state.isConnected && (state.isInternetReachable ?? true);
       setIsOnline(!!online);
     });
-
     return () => unsubscribe();
   }, []);
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <KeyboardAvoidingView

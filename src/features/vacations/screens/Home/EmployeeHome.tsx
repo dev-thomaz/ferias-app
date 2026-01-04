@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -28,6 +28,8 @@ import { User } from "@/types";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { useEmployeeVacations } from "../../hooks/useEmployeeVacations";
 import { HomeHeader } from "../../components/HomeHeader";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { FilterSortBar } from "@/components/FilterSortBar";
 
 type EmployeeStackParamList = {
   VacationDetails: { request: VacationRequest };
@@ -71,48 +73,27 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
     loadData,
   } = useEmployeeVacations(user.id);
 
+  const {
+    data: paginatedData,
+    sortOrder,
+    toggleSort,
+    loadMore,
+    resetPagination,
+  } = useClientPagination(filteredData, 10);
+
   const isSyncingAnything = filteredData.some((item) => item.isSyncing);
-
-  const FilterTabs = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      className="pl-6 mb-4 mt-2"
-      contentContainerStyle={{ paddingRight: 24 }}
-    >
-      {[
-        { id: "ALL", label: "Todos" },
-        { id: "PENDING", label: "Pendentes" },
-        { id: "APPROVED", label: "Aprovados" },
-        { id: "CONCLUDED", label: "Concluídos" },
-        { id: "REJECTED", label: "Reprovados" },
-      ].map((tab) => (
-        <TouchableOpacity
-          key={tab.id}
-          onPress={() => setActiveFilter(tab.id as any)}
-          className={`mr-3 px-4 py-2 rounded-full border ${
-            activeFilter === tab.id
-              ? "bg-emerald-600 border-emerald-600"
-              : "bg-surface-light dark:bg-surface-dark border-gray-200 dark:border-gray-800"
-          }`}
-        >
-          <Text
-            className={`font-bold text-xs ${
-              activeFilter === tab.id
-                ? "text-white"
-                : "text-gray-600 dark:text-gray-400"
-            }`}
-          >
-            {tab.label}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
-  );
-
   const HeroIcon = getIconComponent(heroInfo.icon);
 
-  const ListHeader = () => (
+  useEffect(() => {
+    resetPagination();
+  }, [activeFilter]);
+
+  const onPullToRefresh = async () => {
+    await loadData();
+    resetPagination();
+  };
+
+  const renderHeader = () => (
     <View className="mb-2">
       <HomeHeader user={user} onLogout={onLogout} />
 
@@ -139,7 +120,7 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
         </Text>
       </View>
 
-      <View className="flex-row justify-between items-center px-6 mb-2">
+      <View className="flex-row justify-between items-center px-6 mb-3">
         <Text className="text-lg font-bold text-gray-800 dark:text-gray-100">
           Histórico
         </Text>
@@ -153,14 +134,41 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
           </View>
         )}
       </View>
-      <FilterTabs />
+      <FilterSortBar
+        variant="employee"
+        layout="stacked"
+        filters={[
+          { id: "ALL", label: "Todos" },
+          { id: "PENDING", label: "Pendentes" },
+          { id: "APPROVED", label: "Aprovados" },
+          { id: "CONCLUDED", label: "Concluídos" },
+          { id: "REJECTED", label: "Reprovados" },
+        ]}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        sortOrder={sortOrder}
+        onToggleSort={toggleSort}
+        disabled={loading}
+      />
     </View>
   );
 
+  const FooterComponent = () => {
+    if (loading) return null;
+    if (paginatedData.length >= filteredData.length)
+      return <View className="h-20" />;
+
+    return (
+      <View className="py-6 items-center">
+        <ActivityIndicator size="small" color="#10B981" />
+      </View>
+    );
+  };
+
   return (
-    <ScreenWrapper withScroll={false}>
+    <ScreenWrapper isLoading={loading} withScroll={false}>
       <FlatList
-        data={filteredData}
+        data={loading ? [] : paginatedData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View className="px-6">
@@ -172,23 +180,28 @@ export function EmployeeHome({ user, onLogout }: EmployeeHomeProps) {
             />
           </View>
         )}
-        ListHeaderComponent={ListHeader}
+        ListHeaderComponent={renderHeader}
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading}
-            onRefresh={loadData}
+            onRefresh={onPullToRefresh}
             tintColor="#10B981"
           />
         }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={FooterComponent}
         ListEmptyComponent={
-          <View className="items-center py-20 opacity-40">
-            <Layers size={48} color="#9CA3AF" />
-            <Text className="text-gray-500 mt-4">
-              Nenhuma solicitação encontrada.
-            </Text>
-          </View>
+          !loading ? (
+            <View className="items-center py-20 opacity-40">
+              <Layers size={48} color="#9CA3AF" />
+              <Text className="text-gray-500 mt-4">
+                Nenhuma solicitação encontrada.
+              </Text>
+            </View>
+          ) : null
         }
       />
 

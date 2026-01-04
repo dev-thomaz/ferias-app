@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-
 import {
   Clock,
   ArrowRight,
@@ -12,6 +11,7 @@ import { useColorScheme } from "nativewind";
 
 import { VacationRequest } from "../../types";
 import { formatShortName } from "@/utils/textUtils";
+import { formatDate } from "@/utils/dateUtils";
 import { Avatar } from "@/components/Avatar";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { useVacationDetailsBase } from "../../hooks/useVacationDetailsBase";
@@ -24,7 +24,7 @@ export function EmployeeView({ request }: { request: VacationRequest }) {
     useVacationDetailsBase(request);
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper withScroll={false}>
       <ScrollView
         contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
@@ -37,8 +37,10 @@ export function EmployeeView({ request }: { request: VacationRequest }) {
               </Text>
               <View className="flex-row items-center mt-1">
                 <Clock size={12} color={isDark ? "#6B7280" : "#9CA3AF"} />
+
                 <Text className="text-gray-400 dark:text-gray-500 text-[10px] ml-1 font-bold uppercase tracking-widest">
-                  Solicitado em {formattedDates.creation}
+                  Solicitado em{" "}
+                  {formatDate(request.createdAt, "dd/MM/yyyy HH:mm")}
                 </Text>
               </View>
             </View>
@@ -80,7 +82,6 @@ export function EmployeeView({ request }: { request: VacationRequest }) {
             <Text className="font-bold text-gray-700 dark:text-gray-200">
               Minha Observação
             </Text>
-
             {isExpanded ? (
               <ChevronUp size={20} color="#9CA3AF" />
             ) : (
@@ -115,9 +116,10 @@ export function EmployeeView({ request }: { request: VacationRequest }) {
                 <Text className="text-gray-400 text-xs font-medium">
                   por {formatShortName(request.managerName || "Gestor")}
                 </Text>
-                {formattedDates.update && (
+
+                {request.updatedAt && (
                   <Text className="text-gray-400 text-[10px] mt-0.5">
-                    em {formattedDates.update}
+                    em {formatDate(request.updatedAt, "dd/MM/yyyy HH:mm")}
                   </Text>
                 )}
               </View>

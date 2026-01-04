@@ -44,7 +44,7 @@ export function NewVacationScreen() {
   } = useNewVacation(user);
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper isLoading={loading}>
       <View className="pt-12 px-6 pb-4 bg-surface-light dark:bg-surface-dark border-b border-gray-100 dark:border-gray-800 flex-row items-center">
         <TouchableOpacity
           onPress={() => navigation.goBack()}

@@ -1,4 +1,5 @@
 import { db, authInstance } from "@/config/firebase";
+import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { User } from "@/types";
 import { VacationRequest, VacationStatus } from "@/features/vacations/types";
 
@@ -55,12 +56,17 @@ export const adminService = {
     });
   },
 
-  async getAllVacations(): Promise<VacationRequest[]> {
+  async getAllVacations(
+    statusFilter: string = "ALL"
+  ): Promise<VacationRequest[]> {
     try {
-      const snapshot = await db
-        .collection("vacations")
-        .orderBy("createdAt", "desc")
-        .get();
+      let query: FirebaseFirestoreTypes.Query = db.collection("vacations");
+
+      if (statusFilter !== "ALL") {
+        query = query.where("status", "==", statusFilter);
+      }
+
+      const snapshot = await query.get();
 
       return snapshot.docs.map((doc) => {
         const data = doc.data();

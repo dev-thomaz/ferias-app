@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   RefreshControl,
   Platform,
   UIManager,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -14,11 +16,11 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   Inbox,
   Archive,
-  ArrowDown,
-  ArrowUp,
   CheckCircle,
   Slash,
   CloudOff,
+  ArrowDown,
+  ArrowUp,
 } from "lucide-react-native";
 
 import { VacationRequest } from "../../types";
@@ -28,6 +30,10 @@ import { User } from "@/types";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { useManagerVacations } from "../../hooks/useManagerVacations";
 import { HomeHeader } from "../../components/HomeHeader";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { FilterSortBar } from "@/components/FilterSortBar";
+
+const SPINNER_GIF = require("@assets/spinner.gif");
 
 if (
   Platform.OS === "android" &&
@@ -47,18 +53,56 @@ interface ManagerHomeProps {
 export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
   const navigation = useNavigation<ManagerNavigationProp>();
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const [historySubFilter, setHistorySubFilter] = useState<
+    "ALL" | "APPROVED" | "REJECTED"
+  >("ALL");
+
   const {
     loading,
     activeTab,
     sortedData,
-    sortOrder,
     dialog,
     setDialog,
-    toggleSort,
     changeTab,
     loadData,
     totalCount,
   } = useManagerVacations(user.id);
+
+  const displayedData = useMemo(() => {
+    if (activeTab === "PENDING") return sortedData;
+
+    if (historySubFilter === "ALL") return sortedData;
+
+    return sortedData.filter((item) => item.status === historySubFilter);
+  }, [sortedData, activeTab, historySubFilter]);
+
+  const {
+    data: paginatedData,
+    sortOrder,
+    toggleSort,
+    loadMore,
+    resetPagination,
+  } = useClientPagination(displayedData, 10);
+
+  useEffect(() => {
+    resetPagination();
+    if (activeTab === "PENDING") {
+      setHistorySubFilter("ALL");
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    resetPagination();
+  }, [historySubFilter]);
+
+  const onPullToRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadData();
+    resetPagination();
+    setIsRefreshing(false);
+  }, [loadData]);
 
   const ListHeader = () => (
     <View className="mb-2">
@@ -87,7 +131,7 @@ export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
         </View>
       </View>
 
-      <View className="flex-row px-6 mb-6 gap-x-3">
+      <View className="flex-row px-6 mb-4 gap-x-3">
         {(["PENDING", "HISTORY"] as const).map((tab) => (
           <TouchableOpacity
             key={tab}
@@ -109,45 +153,113 @@ export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
         ))}
       </View>
 
-      <View className="flex-row justify-between items-center mb-4 px-6">
+      <View className="flex-row justify-between items-center mb-2 px-6">
         <View className="flex-row items-center">
           <Text className="text-lg font-bold text-gray-800 dark:text-gray-100">
-            {activeTab === "PENDING" ? "Pendências" : "Histórico"}
+            {activeTab === "PENDING"
+              ? "Fila de Aprovação"
+              : "Histórico de Decisões"}
           </Text>
 
-          {sortedData.some((item) => item.isSyncing) && (
+          {!loading && sortedData.some((item) => item.isSyncing) && (
             <View className="ml-3 flex-row items-center bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full border border-amber-200 dark:border-amber-800">
               <CloudOff size={10} color="#D97706" />
               <Text className="text-[9px] text-amber-700 dark:text-amber-500 font-bold ml-1">
-                SINC. PENDENTE
+                SYNC
               </Text>
             </View>
           )}
         </View>
+      </View>
 
-        {totalCount > 1 && (
+      {activeTab === "HISTORY" ? (
+        <FilterSortBar
+          variant="manager"
+          layout="stacked"
+          filters={[
+            { id: "ALL", label: "Todos" },
+            { id: "APPROVED", label: "Aprovados" },
+            { id: "REJECTED", label: "Reprovados" },
+          ]}
+          activeFilter={historySubFilter}
+          onFilterChange={setHistorySubFilter}
+          sortOrder={sortOrder}
+          onToggleSort={toggleSort}
+          disabled={loading || sortedData.length === 0}
+        />
+      ) : (
+        <View className="flex-row justify-end px-6 mb-4">
           <TouchableOpacity
             onPress={toggleSort}
-            className="flex-row items-center bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 px-3 py-1.5 rounded-full"
+            disabled={loading || sortedData.length === 0}
+            className="bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 px-3 py-2 rounded-lg flex-row items-center justify-center shadow-sm"
           >
-            <Text className="text-xs font-semibold text-gray-600 dark:text-gray-400 mr-2">
-              {sortOrder === "desc" ? "Recentes" : "Antigas"}
+            <Text className="text-[10px] font-bold text-gray-500 dark:text-gray-400 mr-2 uppercase">
+              {sortOrder === "desc" ? "Recente" : "Antigo"}
             </Text>
             {sortOrder === "desc" ? (
-              <ArrowDown size={12} color="#2563EB" />
+              <ArrowDown size={14} color="#2563EB" />
             ) : (
-              <ArrowUp size={12} color="#2563EB" />
+              <ArrowUp size={14} color="#2563EB" />
             )}
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
     </View>
   );
 
+  const EmptyComponent = () => {
+    if (loading) {
+      return (
+        <View className="items-center justify-center py-20">
+          <Image
+            source={SPINNER_GIF}
+            style={{ width: 120, height: 120, borderRadius: 20 }}
+            resizeMode="contain"
+          />
+        </View>
+      );
+    }
+
+    if (displayedData.length > 0) return null;
+
+    return (
+      <View className="items-center justify-center py-12 opacity-50 px-6">
+        <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
+          {activeTab === "PENDING" ? (
+            <CheckCircle size={40} color="#9CA3AF" />
+          ) : (
+            <Slash size={40} color="#9CA3AF" />
+          )}
+        </View>
+        <Text className="text-gray-500 dark:text-gray-400 text-center font-bold">
+          {activeTab === "PENDING"
+            ? "Tudo limpo! Nenhuma pendência."
+            : historySubFilter === "ALL"
+            ? "Nenhum histórico encontrado."
+            : `Nenhum registro com status "${historySubFilter}".`}
+        </Text>
+      </View>
+    );
+  };
+
+  const FooterComponent = () => {
+    if (loading) return null;
+
+    if (paginatedData.length >= displayedData.length)
+      return <View className="h-20" />;
+
+    return (
+      <View className="py-6 items-center">
+        <ActivityIndicator size="small" color="#2563EB" />
+      </View>
+    );
+  };
+
   return (
-    <ScreenWrapper withScroll={false}>
+    <ScreenWrapper isLoading={false} withScroll={false}>
       <FlatList
-        data={sortedData}
+        data={loading ? [] : paginatedData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View className="px-6">
@@ -164,27 +276,15 @@ export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={loadData}
+            refreshing={isRefreshing}
+            onRefresh={onPullToRefresh}
             tintColor="#2563EB"
           />
         }
-        ListEmptyComponent={
-          <View className="items-center justify-center py-12 opacity-50 px-6">
-            <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
-              {activeTab === "PENDING" ? (
-                <CheckCircle size={40} color="#9CA3AF" />
-              ) : (
-                <Slash size={40} color="#9CA3AF" />
-              )}
-            </View>
-            <Text className="text-gray-500 dark:text-gray-400 text-center font-bold">
-              {activeTab === "PENDING"
-                ? "Tudo limpo por aqui!"
-                : "Nenhum histórico encontrado."}
-            </Text>
-          </View>
-        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={<FooterComponent />}
+        ListEmptyComponent={<EmptyComponent />}
       />
 
       <Dialog

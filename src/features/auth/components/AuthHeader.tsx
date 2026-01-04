@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-
-import { Moon, Sun, Umbrella } from "lucide-react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
+import { Moon, Sun } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
+
+import logoImg from "@assets/logo.png";
 
 export function AuthHeader() {
   const { colorScheme, toggleColorScheme } = useColorScheme();
@@ -24,8 +25,12 @@ export function AuthHeader() {
         </TouchableOpacity>
       </View>
 
-      <View className="bg-white/20 p-4 rounded-2xl mb-4 backdrop-blur-md">
-        <Umbrella size={40} color="#fff" />
+      <View className="">
+        <Image
+          source={logoImg}
+          className="w-[120px] h-[120px]"
+          resizeMode="contain"
+        />
       </View>
 
       <Text className="text-4xl font-bold text-white tracking-tight">

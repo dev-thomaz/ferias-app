@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { LayoutAnimation } from "react-native";
 import { db } from "@/config/firebase";
-import { VacationRequest, VacationStatus } from "../types";
+import { VacationRequest } from "../types";
 import { DialogVariant } from "@/components/Dialog";
 
 type TabType = "PENDING" | "HISTORY";
@@ -29,7 +29,7 @@ export function useManagerVacations(userId: string) {
   const [data, setData] = useState<VacationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("PENDING");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
   const [dialog, setDialog] = useState({
     visible: false,
     title: "",
@@ -71,27 +71,6 @@ export function useManagerVacations(userId: string) {
     return () => unsubscribe();
   }, [activeTab, userId]);
 
-  const sortedData = useMemo(() => {
-    return [...data].sort((a, b) => {
-      if (a.isSyncing && !b.isSyncing) return -1;
-      if (!a.isSyncing && b.isSyncing) return 1;
-
-      const dateA = new Date(
-        activeTab === "PENDING" ? a.createdAt : a.updatedAt!
-      ).getTime();
-      const dateB = new Date(
-        activeTab === "PENDING" ? b.createdAt : b.updatedAt!
-      ).getTime();
-
-      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-    });
-  }, [data, sortOrder, activeTab]);
-
-  const toggleSort = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-  };
-
   const changeTab = (tab: TabType) => {
     LayoutAnimation.easeInEaseOut();
     setActiveTab(tab);
@@ -100,11 +79,9 @@ export function useManagerVacations(userId: string) {
   return {
     loading,
     activeTab,
-    sortedData,
-    sortOrder,
+    sortedData: data,
     dialog,
     setDialog,
-    toggleSort,
     changeTab,
     loadData: () => {},
     totalCount: data.length,

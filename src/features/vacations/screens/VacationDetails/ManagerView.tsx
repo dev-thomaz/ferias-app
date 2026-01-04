@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-
 import {
   Clock,
   ArrowRight,
@@ -12,6 +11,7 @@ import { useColorScheme } from "nativewind";
 
 import { VacationRequest } from "../../types";
 import { formatShortName } from "@/utils/textUtils";
+import { formatDate } from "@/utils/dateUtils";
 import { Avatar } from "@/components/Avatar";
 import { ActionModal } from "../../components/ActionModal";
 import { ConfirmationSheet } from "../../components/ConfirmationSheet";
@@ -48,7 +48,7 @@ export function ManagerView({
   } = useManagerActions(request.id, user);
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper isLoading={loading}>
       <ScrollView
         contentContainerStyle={{ padding: 24, paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
@@ -68,8 +68,10 @@ export function ManagerView({
             </Text>
             <View className="flex-row items-center mt-1">
               <Clock size={12} color="#9CA3AF" />
+
               <Text className="text-gray-400 dark:text-gray-500 text-xs ml-1">
-                Solicitado em {formattedDates.creation}
+                Solicitado em{" "}
+                {formatDate(request.createdAt, "dd/MM/yyyy HH:mm")}
               </Text>
             </View>
           </View>
@@ -147,9 +149,15 @@ export function ManagerView({
                   Solicitação{" "}
                   {status.isApproved ? "aprovada ✅" : "reprovada ❌"}
                 </Text>
-                <Text className="text-gray-400 text-xs">
+                <Text className="text-gray-400 dark:text-gray-500 text-xs font-medium">
                   por {formatShortName(request.managerName || "Gestor")}
                 </Text>
+
+                {request.updatedAt && (
+                  <Text className="text-gray-500 dark:text-gray-400 text-[10px] mt-0.5 font-bold">
+                    em {formatDate(request.updatedAt, "dd/MM/yyyy HH:mm")}
+                  </Text>
+                )}
               </View>
             </View>
             {request.managerObservation && (

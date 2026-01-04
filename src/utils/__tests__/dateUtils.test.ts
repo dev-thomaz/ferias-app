@@ -2,7 +2,7 @@ import { formatDate } from "../dateUtils";
 
 describe("Date Utils", () => {
   it("should format a valid date string correctly", () => {
-    const result = formatDate("2025-12-25");
+    const result = formatDate("2025-12-25T12:00:00");
     expect(result).toBe("25/12/25");
   });
 

@@ -33,7 +33,7 @@ export function LoginScreen() {
   } = useLoginController();
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper isLoading={loading}>
       <StatusBar style="light" />
       <AuthHeader />
 
@@ -50,22 +50,6 @@ export function LoginScreen() {
         </View>
 
         <View className="gap-y-4 mb-6">
-          <Input
-            icon={Mail}
-            placeholder="E-mail corporativo"
-            value={email}
-            onChangeText={setEmail}
-            onClear={() => setEmail("")}
-          />
-
-          <Input
-            icon={Lock}
-            placeholder="Senha"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
           {isRegistering && (
             <RegisterForm
               name={name}
@@ -79,6 +63,26 @@ export function LoginScreen() {
               onCancel={toggleMode}
             />
           )}
+
+          <Input
+            icon={Mail}
+            placeholder="E-mail corporativo"
+            value={email}
+            onChangeText={setEmail}
+            onClear={() => setEmail("")}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          <Input
+            icon={Lock}
+            placeholder="Senha"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
         </View>
 
         <Button

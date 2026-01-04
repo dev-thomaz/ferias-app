@@ -40,20 +40,8 @@ export function useEmployeeVacations(userId: string) {
 
   const loadData = async () => {
     setLoading(true);
-
-    setTimeout(() => setLoading(false), 1000);
+    setTimeout(() => setLoading(false), 500);
   };
-
-  const sortedData = useMemo(() => {
-    return [...data].sort((a, b) => {
-      if (a.isSyncing && !b.isSyncing) return -1;
-      if (!a.isSyncing && b.isSyncing) return 1;
-
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return dateB - dateA;
-    });
-  }, [data]);
 
   const hasPendingRequest = useMemo(
     () => data.some((item) => item.status === "PENDING"),
@@ -61,9 +49,9 @@ export function useEmployeeVacations(userId: string) {
   );
 
   const filteredData = useMemo(() => {
-    if (activeFilter === "ALL") return sortedData;
-    return sortedData.filter((item) => item.status === activeFilter);
-  }, [sortedData, activeFilter]);
+    if (activeFilter === "ALL") return data;
+    return data.filter((item) => item.status === activeFilter);
+  }, [data, activeFilter]);
 
   const heroInfo = useMemo(() => {
     const pendingCount = data.filter((i) => i.status === "PENDING").length;
@@ -128,7 +116,7 @@ export function useEmployeeVacations(userId: string) {
   }, [data]);
 
   return {
-    data: sortedData,
+    data,
     loading,
     filteredData,
     activeFilter,

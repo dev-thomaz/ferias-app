@@ -60,20 +60,6 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
     }
   };
 
-  const handleRunSeed = async () => {
-    setIsSeeding(true);
-    try {
-      await seedService.run();
-      await loadDashboardData();
-      alert("Massa de dados gerada com sucesso!");
-    } catch (error) {
-      console.error(error);
-      alert("Falha ao gerar dados.");
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   useFocusEffect(
     useCallback(() => {
       loadDashboardData();
@@ -84,6 +70,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
 
   return (
     <ScreenWrapper
+      isLoading={loading}
       withScroll={true}
       refreshControl={
         <RefreshControl
@@ -240,17 +227,6 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
             </Text>
           </View>
           <ArrowRight size={18} color="#9333EA" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleRunSeed}
-          disabled={isSeeding}
-          className="opacity-40 py-4 flex-row justify-center items-center"
-        >
-          <Database size={14} color="#9CA3AF" />
-          <Text className="text-gray-400 text-[10px] ml-2 font-bold uppercase tracking-widest">
-            {isSeeding ? "Processando..." : "Gerar massa de dados inicial"}
-          </Text>
         </TouchableOpacity>
       </View>
     </ScreenWrapper>

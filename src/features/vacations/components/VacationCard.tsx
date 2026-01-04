@@ -18,7 +18,10 @@ interface VacationCardProps {
   onPress: () => void;
 }
 
-export function VacationCard({ item, onPress }: VacationCardProps) {
+export const VacationCard = React.memo(function VacationCard({
+  item,
+  onPress,
+}: VacationCardProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -55,7 +58,7 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
 
   const theme = (statusConfig as any)[item.status] || statusConfig.PENDING;
   const isPending = item.status === "PENDING";
-  const isSyncing = item.isSyncing; //
+  const isSyncing = item.isSyncing;
 
   return (
     <TouchableOpacity
@@ -169,4 +172,4 @@ export function VacationCard({ item, onPress }: VacationCardProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});

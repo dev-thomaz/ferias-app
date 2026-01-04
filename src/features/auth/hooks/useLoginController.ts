@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { UserRole } from "@/types";
 import { authService } from "../services/authService";
 import { DialogVariant } from "@/components/Dialog";
+import { mapAuthError } from "@/utils/mapAuthError";
 
 export function useLoginController() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -40,7 +41,6 @@ export function useLoginController() {
   const toggleMode = () => {
     Keyboard.dismiss();
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
     resetForm();
     setIsRegistering((prev) => !prev);
   };
@@ -51,8 +51,8 @@ export function useLoginController() {
     if (!email || !password || (isRegistering && !name)) {
       setDialog({
         visible: true,
-        title: "Campos obrigatórios",
-        message: "Por favor, preencha todos os campos para continuar.",
+        title: "Atenção",
+        message: "Por favor, preencha todos os campos obrigatórios.",
         variant: "warning",
         onConfirm: closeDialog,
       });
@@ -72,8 +72,9 @@ export function useLoginController() {
 
         setDialog({
           visible: true,
-          title: "Sucesso!",
-          message: "Aguarde a aprovação do administrador.",
+          title: "Solicitação enviada!",
+          message:
+            "O teu cadastro foi recebido. Aguarde a aprovação do administrador para aceder.",
           variant: "success",
           onConfirm: () => {
             closeDialog();
@@ -86,10 +87,12 @@ export function useLoginController() {
         setUser(userData as any);
       }
     } catch (error: any) {
+      const friendlyMessage = mapAuthError(error);
+
       setDialog({
         visible: true,
-        title: "Erro",
-        message: error.message || "Ocorreu um erro na autenticação.",
+        title: "Erro de Acesso",
+        message: friendlyMessage,
         variant: "error",
         onConfirm: closeDialog,
       });

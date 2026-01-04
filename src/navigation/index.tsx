@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+
 import {
   NavigationContainer,
   DefaultTheme,
@@ -11,6 +11,8 @@ import { useColorScheme } from "nativewind";
 import { authInstance } from "@/config/firebase";
 import { useAuthStore } from "../features/auth/store/useAuthStore";
 import { authService } from "../features/auth/services/authService";
+
+import { Loading } from "@/components/Loading";
 
 import { LoginScreen } from "../features/auth/screens/LoginScreen";
 import { HomeScreen } from "../features/vacations/screens/Home/index";
@@ -54,18 +56,7 @@ export function Routes() {
   }, []);
 
   if (loadingCheck) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colorScheme === "dark" ? "#0F172A" : "#F8FAFC",
-        }}
-      >
-        <ActivityIndicator size="large" color="#2563EB" />
-      </View>
-    );
+    return <Loading />;
   }
 
   const theme = colorScheme === "dark" ? DarkTheme : DefaultTheme;
