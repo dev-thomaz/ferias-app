@@ -87,22 +87,25 @@ export function EmployeesListScreen() {
     userId: string,
     currentStatus: string | undefined
   ) => {
+    setDialog((d) => ({ ...d, visible: false }));
+
     const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
+
     try {
       await adminService.updateUserStatus(userId, newStatus as any);
 
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userId
-            ? { ...u, accountStatus: newStatus as any, isSyncing: true }
-            : u
+          u.id === userId ? { ...u, accountStatus: newStatus as any } : u
         )
       );
-      setDialog((d) => ({ ...d, visible: false }));
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const closeDialog = () => {
+    setDialog((d) => ({ ...d, visible: false }));
   };
 
   const handleResetPassword = async (email: string) => {
@@ -339,8 +342,10 @@ export function EmployeesListScreen() {
             data={filteredUsers}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
+            extraData={users}
             contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
+            removeClippedSubviews={false}
             ListEmptyComponent={() => (
               <View className="items-center mt-20 opacity-40">
                 <Search size={48} color={isDark ? "#4B5563" : "#9CA3AF"} />

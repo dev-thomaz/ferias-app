@@ -7,3 +7,5 @@ export const authInstance = auth();
 db.settings({
   persistence: true,
 });
+
+export { firestore, auth };
