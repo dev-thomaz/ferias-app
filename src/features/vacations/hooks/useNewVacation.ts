@@ -60,33 +60,31 @@ export function useNewVacation(user: User | null) {
         observation: observation.trim(),
       };
 
-      vacationService
-        .createRequest(requestData)
-        .catch((err) =>
-          console.error("Erro na sincronização em background:", err)
-        );
+      await vacationService.createRequest(requestData);
 
-      setTimeout(() => {
-        setLoading(false);
-        setDialog({
-          visible: true,
-          title: isOnline ? "Tudo certo! 🌴" : "Salvo no dispositivo! 📡",
-          message: isOnline
-            ? "Sua solicitação foi enviada com sucesso para o gestor."
-            : "Você está offline, mas sua solicitação foi salva e será sincronizada assim que houver conexão.",
-          variant: isOnline ? "success" : "info",
-          onConfirm: () => {
-            setDialog((d) => ({ ...d, visible: false }));
-            navigation.goBack();
-          },
-        });
-      }, 600);
+      setLoading(false);
+
+      setDialog({
+        visible: true,
+        title: isOnline ? "Tudo certo! 🌴" : "Salvo no dispositivo! 📡",
+        message: isOnline
+          ? "Sua solicitação foi enviada com sucesso para o gestor."
+          : "Você está offline, mas sua solicitação foi salva e será sincronizada assim que houver conexão.",
+        variant: isOnline ? "success" : "info",
+        onConfirm: () => {
+          setDialog((d) => ({ ...d, visible: false }));
+
+          navigation.goBack();
+        },
+      });
     } catch (error: any) {
+      console.error("ERRO CRÍTICO AO CRIAR FÉRIAS:", error);
       setLoading(false);
       setDialog({
         visible: true,
         title: "Erro inesperado",
-        message: "Não foi possível processar a solicitação.",
+        message:
+          "Não foi possível processar a solicitação no momento. Tente novamente.",
         variant: "error",
         onConfirm: closeDialog,
       });
