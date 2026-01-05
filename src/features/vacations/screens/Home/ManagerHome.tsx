@@ -106,6 +106,25 @@ export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
     setIsRefreshing(false);
   }, [loadData]);
 
+  const renderEmptyState = () => (
+    <View className="items-center justify-center py-12 opacity-50 px-6">
+      <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
+        {activeTab === "PENDING" ? (
+          <CheckCircle size={40} color="#9CA3AF" />
+        ) : (
+          <Slash size={40} color="#9CA3AF" />
+        )}
+      </View>
+      <Text className="text-gray-500 dark:text-gray-400 text-center font-bold">
+        {activeTab === "PENDING"
+          ? "Tudo limpo! Nenhuma pendência."
+          : historySubFilter === "ALL"
+          ? "Nenhum histórico encontrado."
+          : `Nenhum registro em "${translateStatusFilter(historySubFilter)}".`}
+      </Text>
+    </View>
+  );
+
   const ListHeader = () => (
     <View className="mb-2">
       <HomeHeader user={user} onLogout={onLogout} />
@@ -210,43 +229,6 @@ export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
     </View>
   );
 
-  const EmptyComponent = () => {
-    if (loading) {
-      return (
-        <View className="items-center justify-center py-20">
-          <Image
-            source={SPINNER_GIF}
-            style={{ width: 120, height: 120, borderRadius: 20 }}
-            resizeMode="contain"
-          />
-        </View>
-      );
-    }
-
-    if (displayedData.length > 0) return null;
-
-    return (
-      <View className="items-center justify-center py-12 opacity-50 px-6">
-        <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
-          {activeTab === "PENDING" ? (
-            <CheckCircle size={40} color="#9CA3AF" />
-          ) : (
-            <Slash size={40} color="#9CA3AF" />
-          )}
-        </View>
-        <Text className="text-gray-500 dark:text-gray-400 text-center font-bold">
-          {activeTab === "PENDING"
-            ? "Tudo limpo! Nenhuma pendência."
-            : historySubFilter === "ALL"
-            ? "Nenhum histórico encontrado."
-            : `Nenhum registro em "${translateStatusFilter(
-                historySubFilter
-              )}".`}
-        </Text>
-      </View>
-    );
-  };
-
   const FooterComponent = () => {
     if (loading) return null;
 
@@ -287,8 +269,20 @@ export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={<FooterComponent />}
-        ListEmptyComponent={<EmptyComponent />}
+        ListFooterComponent={FooterComponent}
+        ListEmptyComponent={
+          loading ? (
+            <View className="items-center justify-center py-20">
+              <Image
+                source={SPINNER_GIF}
+                style={{ width: 120, height: 120, borderRadius: 20 }}
+                resizeMode="contain"
+              />
+            </View>
+          ) : (
+            renderEmptyState()
+          )
+        }
       />
 
       <Dialog

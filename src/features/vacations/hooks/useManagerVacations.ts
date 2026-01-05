@@ -15,9 +15,17 @@ const formatFirestoreDate = (
   dateField: FirebaseFirestoreTypes.Timestamp | string | null | undefined
 ): string => {
   if (!dateField) return new Date().toISOString();
-  if (typeof dateField === "object" && "toDate" in dateField)
-    return dateField.toDate().toISOString();
+
+  if (typeof dateField === "object") {
+    if ("toDate" in dateField && typeof dateField.toDate === "function") {
+      return dateField.toDate().toISOString();
+    }
+
+    return new Date().toISOString();
+  }
+
   if (typeof dateField === "string") return dateField;
+
   return new Date().toISOString();
 };
 
@@ -25,13 +33,14 @@ const mapDocument = (
   doc: FirebaseFirestoreTypes.QueryDocumentSnapshot
 ): VacationRequest => {
   const data = doc.data() as FirestoreVacationData;
+
   return {
     id: doc.id,
     userId: data.userId || "",
-    userName: data.userName || "",
+    userName: data.userName || "Usuário",
     userAvatarId: data.userAvatarId ?? null,
-    startDate: data.startDate || "",
-    endDate: data.endDate || "",
+    startDate: data.startDate || new Date().toISOString(),
+    endDate: data.endDate || new Date().toISOString(),
     observation: data.observation || "",
     status: (data.status as VacationStatus) || "PENDING",
     createdAt: formatFirestoreDate(data.createdAt),
@@ -63,35 +72,33 @@ export function useManagerVacations(userId: string) {
 
     if (activeTab === "PENDING") {
       query = query.where("status", "==", "PENDING");
+
+      query = query.orderBy("createdAt", "desc");
     } else {
       query = query.where("managedBy", "==", userId);
+
+      query = query.orderBy("updatedAt", "desc");
     }
 
-    const unsubscribe = query
-      .orderBy(activeTab === "PENDING" ? "createdAt" : "updatedAt", "desc")
-      .onSnapshot(
-        (snapshot) => {
-          const mappedData = snapshot.docs.map(mapDocument);
-          setData(mappedData);
-          setLoading(false);
-        },
-        (error) => {
-          console.error("Erro no listener do Gestor:", error);
-          setDialog({
-            visible: true,
-            title: "Erro de Conexão",
-            message: "Não foi possível sincronizar os dados.",
-            variant: "error",
-          });
-          setLoading(false);
-        }
-      );
+    const unsubscribe = query.onSnapshot(
+      { includeMetadataChanges: true },
+      (snapshot) => {
+        const mappedData = snapshot.docs.map(mapDocument);
+        setData(mappedData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Erro no listener do Gestor:", error);
+
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [activeTab, userId]);
 
   const changeTab = (tab: TabType) => {
-    LayoutAnimation.easeInEaseOut();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setActiveTab(tab);
   };
 
@@ -99,6 +106,7 @@ export function useManagerVacations(userId: string) {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+
     await new Promise((resolve) => setTimeout(resolve, 500));
     setLoading(false);
   }, []);

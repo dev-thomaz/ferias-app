@@ -47,7 +47,9 @@ export function useLoginController() {
   const handleAuth = async () => {
     Keyboard.dismiss();
 
-    if (!email || !password || (isRegistering && !name)) {
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail || !password || (isRegistering && !name)) {
       setDialog({
         visible: true,
         title: "Atenção",
@@ -67,7 +69,13 @@ export function useLoginController() {
             : Math.floor(Math.random() * 50) + 51
           : null;
 
-        await authService.register(name, email, password, role, finalAvatarID);
+        await authService.register(
+          name,
+          cleanEmail,
+          password,
+          role,
+          finalAvatarID
+        );
 
         setDialog({
           visible: true,
@@ -82,7 +90,7 @@ export function useLoginController() {
           },
         });
       } else {
-        const userData = await authService.login(email, password);
+        const userData = await authService.login(cleanEmail, password);
 
         setUser(userData);
       }
