@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { View, StatusBar } from "react-native";
 import { useColorScheme } from "nativewind";
 
@@ -13,26 +13,24 @@ import { AdminHome } from "@/features/admin/screens/AdminHome";
 export function HomeScreen() {
   const { user, logout } = useAuthStore();
   const [logoutDialog, setLogoutDialog] = useState(false);
+
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const handleLogoutPress = () => {
+  const handleLogoutPress = useCallback(() => {
     setLogoutDialog(true);
-  };
+  }, []);
 
-  const confirmLogout = async () => {
+  const confirmLogout = useCallback(async () => {
     setLogoutDialog(false);
-
     try {
       await authService.logout();
-
       logout();
     } catch (error) {
       console.error("Erro ao deslogar do Firebase:", error);
-
       logout();
     }
-  };
+  }, [logout]);
 
   if (!user) return null;
 

@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  LayoutAnimation,
+} from "react-native";
 import { Moon, Sun } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
@@ -9,11 +15,16 @@ export function AuthHeader() {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
+  const handleToggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    toggleColorScheme();
+  };
+
   return (
     <View className="bg-blue-600 h-[30%] justify-end items-center pb-12 rounded-b-[40px] shadow-lg shadow-blue-900/20 z-10">
       <View className="absolute top-12 right-6">
         <TouchableOpacity
-          onPress={toggleColorScheme}
+          onPress={handleToggle}
           className="p-2 bg-blue-500/30 rounded-full border border-blue-400/50"
           activeOpacity={0.7}
         >

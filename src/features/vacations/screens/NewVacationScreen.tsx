@@ -10,7 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { addDays } from "date-fns";
 
-import { ArrowLeft, Calendar } from "lucide-react-native";
+import { ArrowLeft, Calendar, Info } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
@@ -31,6 +31,8 @@ export function NewVacationScreen() {
     setStartDate,
     endDate,
     setEndDate,
+    minDate,
+    minDaysNotice,
     observation,
     setObservation,
     loading,
@@ -41,6 +43,7 @@ export function NewVacationScreen() {
     setShowEndPicker,
     dialog,
     handleCreate,
+    closeDialog,
   } = useNewVacation(user);
 
   return (
@@ -78,6 +81,23 @@ export function NewVacationScreen() {
                 : "Datas inválidas"}
             </Text>
           </View>
+
+          {minDaysNotice > 0 && (
+            <View className="flex-row items-start bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 mb-4">
+              <Info
+                size={14}
+                color="#3B82F6"
+                style={{ marginTop: 2, marginRight: 8 }}
+              />
+              <Text className="text-xs text-blue-600 dark:text-blue-400 flex-1 leading-4">
+                Política da empresa: É necessário agendar com pelo menos{" "}
+                <Text className="font-bold">
+                  {minDaysNotice} {minDaysNotice === 1 ? "dia" : "dias"}
+                </Text>{" "}
+                de antecedência.
+              </Text>
+            </View>
+          )}
 
           <View className="flex-row gap-x-4">
             <TouchableOpacity
@@ -159,7 +179,7 @@ export function NewVacationScreen() {
           value={startDate}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
-          minimumDate={new Date()}
+          minimumDate={minDate}
           onChange={(e, date) => {
             setShowStartPicker(false);
             if (date) {
@@ -183,7 +203,14 @@ export function NewVacationScreen() {
         />
       )}
 
-      <Dialog {...dialog} />
+      <Dialog
+        visible={dialog.visible}
+        title={dialog.title}
+        message={dialog.message}
+        variant={dialog.variant}
+        onConfirm={dialog.onConfirm}
+        onCancel={closeDialog}
+      />
     </ScreenWrapper>
   );
 }

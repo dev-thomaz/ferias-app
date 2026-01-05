@@ -1,16 +1,18 @@
 import React from "react";
 import { View, Text, Modal, TouchableOpacity } from "react-native";
-
 import {
   CheckCircle,
   AlertCircle,
   AlertTriangle,
   Info,
+  LucideIcon,
 } from "lucide-react-native";
-import { Button } from "./Button";
 import { useColorScheme } from "nativewind";
 
-export type DialogVariant = "success" | "error" | "info" | "warning";
+import { Button } from "./Button";
+import { DialogVariant } from "@/types";
+
+type ButtonVariantType = React.ComponentProps<typeof Button>["variant"];
 
 interface DialogProps {
   visible: boolean;
@@ -18,9 +20,16 @@ interface DialogProps {
   message: string;
   variant?: DialogVariant;
   confirmText?: string;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   onCancel?: () => void;
   cancelText?: string;
+}
+
+interface ThemeConfig {
+  icon: LucideIcon;
+  color: string;
+  btnVariant: ButtonVariantType;
+  iconColor: string;
 }
 
 export function Dialog({
@@ -36,7 +45,7 @@ export function Dialog({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const variants = {
+  const variants: Record<DialogVariant, ThemeConfig> = {
     success: {
       icon: CheckCircle,
       color: "text-emerald-600",
@@ -61,7 +70,7 @@ export function Dialog({
       btnVariant: "primary",
       iconColor: isDark ? "#60a5fa" : "#2563eb",
     },
-  } as const;
+  };
 
   const theme = variants[variant];
   const Icon = theme.icon;
@@ -90,8 +99,8 @@ export function Dialog({
           <View className="w-full gap-y-3">
             <Button
               title={confirmText}
-              variant={theme.btnVariant as any}
-              onPress={onConfirm}
+              variant={theme.btnVariant}
+              onPress={onConfirm || (() => {})}
             />
 
             {onCancel && (

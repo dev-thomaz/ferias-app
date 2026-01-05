@@ -166,11 +166,12 @@ src/
 
 ---
 
+```mermaid
 graph TD
-subgraph UI_Layer [Camada de Apresentação]
-Screen[Screens / Telas]
-Comp[Componentes]
-end
+    subgraph UI_Layer [Camada de Apresentação]
+        Screen[Screens / Telas]
+        Comp[Componentes]
+    end
 
     subgraph Logic_Layer [Camada de Lógica]
         Hook[Hooks / Controllers]
@@ -197,9 +198,7 @@ end
     style Logic_Layer fill:#fff9c4,stroke:#fbc02d
     style Data_Layer fill:#e8f5e9,stroke:#2e7d32
     style External fill:#f3e5f5,stroke:#7b1fa2
-
-
-    ---
+```
 
 ## Controle de Acesso & Permissões
 
@@ -218,9 +217,18 @@ O app possui **controle de permissões baseado em perfil**:
 
 ---
 
+## ⚙️ Regras de Negócio Dinâmicas
+
+O aplicativo permite que o **Administrador** configure as regras de validação em tempo real, refletindo instantaneamente para todos os usuários:
+
+- 📅 **Antecedência Mínima Configurável:** O Admin define a quantidade exata de dias de antecedência exigidos para uma nova solicitação (ex: 1 dia, 7 dias, 30 dias ou valor personalizado).
+- 🔀 **Concorrência:** Controle sobre a permissão de abrir novas solicitações enquanto o usuário ainda possui outras pendentes.
+- 🛡️ **Supervisão do Admin:** Habilita ou desabilita a capacidade do Admin de atuar na aprovação de férias, além dos Gestores.
+
+```mermaid
 graph LR
-User((Usuário)) --> Login[Tela de Login]
-Login --> Auth{Autenticado?}
+    User((Usuário)) --> Login[Tela de Login]
+    Login --> Auth{Autenticado?}
 
     Auth -- Não --> Error[Exibe Erro]
     Auth -- Sim --> Fetch[Busca Perfil Firestore]
@@ -232,14 +240,13 @@ Login --> Auth{Autenticado?}
     Role -- COLABORADOR --> EmployeeScreen[Home Colaborador]
 
     subgraph Permissões
-    AdminScreen -->|Aprova| Users[Usuários]
-    ManagerScreen -->|Aprova| Vacations[Férias]
-    EmployeeScreen -->|Solicita| MyVacation[Minhas Férias]
+        AdminScreen -->|Aprova| Users[Usuários]
+        ManagerScreen -->|Aprova| Vacations[Férias]
+        EmployeeScreen -->|Solicita| MyVacation[Minhas Férias]
     end
 
     style Role fill:#ffecb3,stroke:#ff6f00,stroke-width:2px
-
-    ---
+```
 
 ## 📡 Estratégia Offline-First
 
@@ -252,11 +259,12 @@ Login --> Auth{Autenticado?}
 
 ---
 
+```mermaid
 sequenceDiagram
-participant App as App (Offline)
-participant Local as Cache Local
-participant Network as Rede
-participant Server as Firebase (Server)
+    participant App as App (Offline)
+    participant Local as Cache Local
+    participant Network as Rede
+    participant Server as Firebase (Server)
 
     Note over App, Server: Cenário: Gestor aprova Férias sem Internet
 
@@ -278,8 +286,7 @@ participant Server as Firebase (Server)
         App->>Local: Reverte para status do Servidor
         App->>App: Atualiza UI (Rollback)
     end
-
-    ---
+```
 
 ## 🧪 Testes
 
@@ -423,3 +430,15 @@ Essa estratégia evita problemas de **Last Write Wins** em ambientes offline-fir
 
 > 💼 **Desenvolvido como Teste Técnico**
 > 📱 React Native • Expo • Firebase • Clean Architecture
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```

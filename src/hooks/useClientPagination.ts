@@ -1,14 +1,13 @@
 import { useState, useMemo, useCallback } from "react";
 
-interface DateSortable {
-  createdAt?: string | any;
-  updatedAt?: string | any;
-  [key: string]: any;
+interface TimestampedItem {
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 type SortOrder = "asc" | "desc";
 
-export function useClientPagination<T extends DateSortable>(
+export function useClientPagination<T extends TimestampedItem>(
   data: T[],
   itemsPerPage: number = 15
 ) {
@@ -16,9 +15,11 @@ export function useClientPagination<T extends DateSortable>(
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
   const sortedData = useMemo(() => {
+    if (!data) return [];
+
     return [...data].sort((a, b) => {
-      const dateA = a.updatedAt || a.createdAt || "";
-      const dateB = b.updatedAt || b.createdAt || "";
+      const dateA = a.updatedAt ?? a.createdAt ?? "";
+      const dateB = b.updatedAt ?? b.createdAt ?? "";
 
       if (sortOrder === "desc") {
         if (dateB > dateA) return 1;
@@ -38,9 +39,9 @@ export function useClientPagination<T extends DateSortable>(
   }, [sortedData, currentPage, itemsPerPage]);
 
   const loadMore = useCallback(() => {
-    if (paginatedData.length >= data.length) return;
+    if (paginatedData.length >= sortedData.length) return;
     setCurrentPage((prev) => prev + 1);
-  }, [paginatedData.length, data.length]);
+  }, [paginatedData.length, sortedData.length]);
 
   const toggleSort = useCallback(() => {
     setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));

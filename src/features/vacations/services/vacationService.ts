@@ -1,13 +1,20 @@
-import { db } from "@/config/firebase";
 import firestore, {
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
-import { VacationRequest, CreateVacationDTO, VacationStatus } from "../types";
+import { db } from "@/config/firebase";
+import {
+  VacationRequest,
+  CreateVacationDTO,
+  VacationStatus,
+  FirestoreVacationData,
+} from "@/types";
 
-const formatFirestoreDate = (dateField: any): string => {
+const formatFirestoreDate = (
+  dateField: FirebaseFirestoreTypes.Timestamp | string | null | undefined
+): string => {
   if (!dateField) return new Date().toISOString();
 
-  if (typeof dateField.toDate === "function") {
+  if (typeof dateField === "object" && "toDate" in dateField) {
     return dateField.toDate().toISOString();
   }
 
@@ -21,24 +28,25 @@ const formatFirestoreDate = (dateField: any): string => {
 const mapDocument = (
   doc: FirebaseFirestoreTypes.QueryDocumentSnapshot
 ): VacationRequest => {
-  const data = doc.data();
+  const data = doc.data() as FirestoreVacationData;
+
   return {
     id: doc.id,
-    userId: data.userId,
-    userName: data.userName,
-    userAvatarId: data.userAvatarId,
-    startDate: data.startDate,
-    endDate: data.endDate,
-    observation: data.observation,
-    status: data.status as VacationStatus,
+    userId: data.userId || "",
+    userName: data.userName || "",
+    userAvatarId: data.userAvatarId ?? null,
+    startDate: data.startDate || "",
+    endDate: data.endDate || "",
+    observation: data.observation || "",
+    status: (data.status as VacationStatus) || "PENDING",
 
     createdAt: formatFirestoreDate(data.createdAt),
     updatedAt: formatFirestoreDate(data.updatedAt),
 
-    managedBy: data.managedBy,
-    managerName: data.managerName,
-    managerAvatarId: data.managerAvatarId,
-    managerObservation: data.managerObservation,
+    managedBy: data.managedBy || undefined,
+    managerName: data.managerName || undefined,
+    managerAvatarId: data.managerAvatarId || undefined,
+    managerObservation: data.managerObservation || undefined,
 
     isSyncing: doc.metadata.hasPendingWrites,
   };
@@ -47,12 +55,24 @@ const mapDocument = (
 export const vacationService = {
   async createRequest(data: CreateVacationDTO): Promise<string> {
     try {
-      const docRef = await db.collection("vacations").add({
+      const docRef = db.collection("vacations").doc();
+
+      const payload = {
         ...data,
         status: "PENDING",
         createdAt: firestore.FieldValue.serverTimestamp(),
         updatedAt: firestore.FieldValue.serverTimestamp(),
+      };
+
+      const timeoutPromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          console.log("⚠️ Timeout de rede: assumindo escrita offline (Cache).");
+          resolve();
+        }, 2500);
       });
+
+      await Promise.race([docRef.set(payload), timeoutPromise]);
+
       return docRef.id;
     } catch (error) {
       console.error("Erro ao criar solicitação:", error);

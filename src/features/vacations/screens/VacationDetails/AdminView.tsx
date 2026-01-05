@@ -10,7 +10,7 @@ import {
 } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
-import { VacationRequest } from "../../types";
+import { VacationRequest, User } from "@/types";
 import { formatShortName } from "@/utils/textUtils";
 import { formatDate } from "@/utils/dateUtils";
 import { Avatar } from "@/components/Avatar";
@@ -23,13 +23,12 @@ import { useVacationDetailsBase } from "../../hooks/useVacationDetailsBase";
 import { useManagerActions } from "../../hooks/useManagerActions";
 import { configService } from "@/features/vacations/services/configService";
 
-export function AdminView({
-  request,
-  user,
-}: {
-  request: VacationRequest & { id: string };
-  user: any;
-}) {
+interface AdminViewProps {
+  request: VacationRequest;
+  user: User;
+}
+
+export function AdminView({ request, user }: AdminViewProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -52,9 +51,16 @@ export function AdminView({
   } = useManagerActions(request.id, user);
 
   useEffect(() => {
+    let mounted = true;
     configService.getVacationConfig().then((config) => {
-      setAdminCanManage(config.adminCanManageVacations);
+      if (mounted) {
+        setAdminCanManage(config.adminCanManageVacations);
+      }
     });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const showActions = status.isPending && adminCanManage;
@@ -76,7 +82,7 @@ export function AdminView({
             size="lg"
           />
           <View className="flex-1 ml-4">
-            <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+            <Text className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-widest">
               Colaborador
             </Text>
             <Text className="text-gray-800 dark:text-gray-100 font-bold text-xl">
@@ -85,7 +91,7 @@ export function AdminView({
             <View className="flex-row items-center mt-1">
               <Clock size={12} color="#9CA3AF" />
 
-              <Text className="text-gray-400 text-xs ml-1 font-medium">
+              <Text className="text-gray-400 dark:text-gray-500 text-xs ml-1 font-medium">
                 Solicitado em{" "}
                 {formatDate(request.createdAt, "dd/MM/yyyy HH:mm")}
               </Text>
@@ -142,7 +148,7 @@ export function AdminView({
             )}
           </View>
           <Text
-            className="text-gray-500 italic leading-relaxed"
+            className="text-gray-500 dark:text-gray-400 italic leading-relaxed"
             numberOfLines={isExpanded ? undefined : 3}
           >
             {request.observation || "Nenhuma observação informada."}
@@ -151,7 +157,7 @@ export function AdminView({
 
         {!status.isPending && (
           <View className="mb-6">
-            <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4 px-1">
+            <Text className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-4 px-1">
               Dados da Decisão
             </Text>
             <View className="flex-row items-center mb-4">

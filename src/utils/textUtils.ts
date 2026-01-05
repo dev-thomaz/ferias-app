@@ -1,4 +1,4 @@
-import { VacationStatus } from "../types";
+import { VacationStatus } from "@/types";
 
 export function formatShortName(name?: string): string {
   if (!name) return "Usuário";
@@ -30,19 +30,21 @@ export function getInitials(name?: string): string {
 
 export function translateStatusFilter(status: VacationStatus | "ALL"): string {
   const map: Record<string, string> = {
-    ALL: "todos",
-    PENDING: "pendentes",
-    APPROVED: "aprovados",
-    REJECTED: "reprovados",
+    ALL: "Todos",
+    PENDING: "Pendentes",
+    APPROVED: "Aprovados",
+    COMPLETED: "Concluídos",
+    REJECTED: "Reprovados",
   };
 
-  return map[status] || status.toLowerCase();
+  return map[status] || status;
 }
 
 export function translateStatusLabel(status: VacationStatus): string {
   const map: Record<string, string> = {
     PENDING: "Pendente",
     APPROVED: "Aprovado",
+    COMPLETED: "Concluído",
     REJECTED: "Reprovado",
   };
   return map[status] || status;

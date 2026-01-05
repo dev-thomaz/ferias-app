@@ -9,13 +9,21 @@ import {
   Zap,
 } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
-import { VacationRequest } from "../types";
+import { VacationRequest, VacationStatus } from "@/types";
 import { formatDate } from "@/utils/dateUtils";
 import { formatShortName } from "@/utils/textUtils";
 
 interface VacationCardProps {
   item: VacationRequest;
   onPress: () => void;
+}
+
+interface StatusTheme {
+  label: string;
+  bg: string;
+  text: string;
+  border: string;
+  iconColor: string;
 }
 
 export const VacationCard = React.memo(function VacationCard({
@@ -25,7 +33,7 @@ export const VacationCard = React.memo(function VacationCard({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const statusConfig = {
+  const statusConfig: Record<VacationStatus, StatusTheme> = {
     PENDING: {
       label: "Pendente",
       bg: isDark ? "bg-amber-900/20" : "bg-amber-100",
@@ -56,7 +64,8 @@ export const VacationCard = React.memo(function VacationCard({
     },
   };
 
-  const theme = (statusConfig as any)[item.status] || statusConfig.PENDING;
+  const theme = statusConfig[item.status] || statusConfig.PENDING;
+
   const isPending = item.status === "PENDING";
   const isSyncing = item.isSyncing;
 

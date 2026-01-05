@@ -1,9 +1,8 @@
 import { useState, useCallback } from "react";
 import { Keyboard, LayoutAnimation } from "react-native";
 import { useAuthStore } from "../store/useAuthStore";
-import { UserRole } from "@/types";
+import { UserRole, DialogState } from "@/types";
 import { authService } from "../services/authService";
-import { DialogVariant } from "@/components/Dialog";
 import { mapAuthError } from "@/utils/mapAuthError";
 
 export function useLoginController() {
@@ -17,11 +16,11 @@ export function useLoginController() {
   const [useAvatar, setUseAvatar] = useState(false);
   const [gender, setGender] = useState<"M" | "F">("M");
 
-  const [dialog, setDialog] = useState({
+  const [dialog, setDialog] = useState<DialogState>({
     visible: false,
     title: "",
     message: "",
-    variant: "info" as DialogVariant,
+    variant: "info",
     onConfirm: () => {},
   });
 
@@ -62,7 +61,7 @@ export function useLoginController() {
     setLoading(true);
     try {
       if (isRegistering) {
-        let finalAvatarID = useAvatar
+        const finalAvatarID = useAvatar
           ? gender === "M"
             ? Math.floor(Math.random() * 50) + 1
             : Math.floor(Math.random() * 50) + 51
@@ -84,9 +83,10 @@ export function useLoginController() {
         });
       } else {
         const userData = await authService.login(email, password);
-        setUser(userData as any);
+
+        setUser(userData);
       }
-    } catch (error: any) {
+    } catch (error) {
       const friendlyMessage = mapAuthError(error);
 
       setDialog({

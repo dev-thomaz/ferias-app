@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, LayoutAnimation } from "react-native";
 
 import {
   Briefcase,
@@ -22,6 +22,11 @@ export function HomeHeader({ user, onLogout }: HomeHeaderProps) {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const isManager = user.role === "GESTOR";
+
+  const handleToggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    toggleColorScheme();
+  };
 
   return (
     <View className="flex-row justify-between items-center mb-6 mt-2 px-6 pt-4">
@@ -93,7 +98,7 @@ export function HomeHeader({ user, onLogout }: HomeHeaderProps) {
 
       <View className="flex-row items-center gap-x-2">
         <TouchableOpacity
-          onPress={toggleColorScheme}
+          onPress={handleToggle}
           className="bg-surface-light dark:bg-surface-dark p-3.5 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
         >
           {isDark ? (

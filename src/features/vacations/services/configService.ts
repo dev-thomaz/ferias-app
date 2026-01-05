@@ -1,5 +1,5 @@
 import { db } from "@/config/firebase";
-import { VacationConfig } from "@/features/vacations/types";
+import { VacationConfig } from "@/types";
 
 export const configService = {
   async getVacationConfig(): Promise<VacationConfig> {
@@ -9,12 +9,26 @@ export const configService = {
       const docSnap = await docRef.get();
 
       if (docSnap.exists()) {
-        return docSnap.data() as VacationConfig;
+        const data = docSnap.data();
+        return {
+          allowConcurrentRequests: data?.allowConcurrentRequests ?? false,
+          adminCanManageVacations: data?.adminCanManageVacations ?? true,
+          minDaysNotice: data?.minDaysNotice ?? 1,
+        };
       }
 
-      return { allowConcurrentRequests: false, adminCanManageVacations: true };
+      return {
+        allowConcurrentRequests: false,
+        adminCanManageVacations: true,
+        minDaysNotice: 1,
+      };
     } catch (error) {
-      return { allowConcurrentRequests: false, adminCanManageVacations: true };
+      console.error("Erro ao buscar config:", error);
+      return {
+        allowConcurrentRequests: false,
+        adminCanManageVacations: true,
+        minDaysNotice: 1,
+      };
     }
   },
 

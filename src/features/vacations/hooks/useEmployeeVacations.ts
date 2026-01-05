@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   parseISO,
   isFuture,
@@ -7,8 +7,8 @@ import {
   startOfDay,
 } from "date-fns";
 import { vacationService } from "../services/vacationService";
-import { VacationRequest, VacationStatus } from "../types";
-import { DialogVariant } from "@/components/Dialog";
+import { configService } from "../services/configService";
+import { VacationRequest, VacationStatus, DialogState } from "@/types";
 
 type VacationItem = VacationRequest & { id: string };
 type FilterType = "ALL" | VacationStatus;
@@ -16,16 +16,28 @@ type FilterType = "ALL" | VacationStatus;
 export function useEmployeeVacations(userId: string) {
   const [data, setData] = useState<VacationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [allowConcurrent, setAllowConcurrent] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>("ALL");
-  const [dialog, setDialog] = useState({
+
+  const [dialog, setDialog] = useState<DialogState>({
     visible: false,
     title: "",
     message: "",
-    variant: "info" as DialogVariant,
+    variant: "info",
   });
+
+  const fetchData = useCallback(async () => {
+    try {
+      const config = await configService.getVacationConfig();
+      setAllowConcurrent(config.allowConcurrentRequests);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
 
   useEffect(() => {
     setLoading(true);
+    fetchData();
 
     const unsubscribe = vacationService.subscribeUserVacations(
       userId,
@@ -36,10 +48,11 @@ export function useEmployeeVacations(userId: string) {
     );
 
     return () => unsubscribe();
-  }, [userId]);
+  }, [userId, fetchData]);
 
   const loadData = async () => {
     setLoading(true);
+    await fetchData();
     setTimeout(() => setLoading(false), 500);
   };
 
@@ -47,6 +60,11 @@ export function useEmployeeVacations(userId: string) {
     () => data.some((item) => item.status === "PENDING"),
     [data]
   );
+
+  const canCreateRequest = useMemo(() => {
+    if (allowConcurrent) return true;
+    return !hasPendingRequest;
+  }, [allowConcurrent, hasPendingRequest]);
 
   const filteredData = useMemo(() => {
     if (activeFilter === "ALL") return data;
@@ -122,7 +140,7 @@ export function useEmployeeVacations(userId: string) {
     activeFilter,
     setActiveFilter,
     heroInfo,
-    hasPendingRequest,
+    canCreateRequest,
     dialog,
     setDialog,
     loadData,

@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, RefreshControl } from "react-native";
-
 import {
   Shield,
   Sun,
@@ -12,23 +11,13 @@ import {
   Users,
   Calendar,
   Settings,
-  Database,
 } from "lucide-react-native";
-
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useColorScheme } from "nativewind";
 
 import { User } from "@/types";
 import { Avatar } from "@/components/Avatar";
 import { formatShortName } from "@/utils/textUtils";
-import { adminService } from "@/features/admin/services/adminService";
-import { seedService } from "@/features/vacations/services/seedService";
-import { configService } from "@/features/vacations/services/configService";
-import { RootStackParamList } from "@/types/navigation";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
-
-type AdminNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+import { useAdminHome } from "@/features/admin/hooks/useAdminHome";
 
 interface AdminHomeProps {
   user: User;
@@ -36,37 +25,15 @@ interface AdminHomeProps {
 }
 
 export function AdminHome({ user, onLogout }: AdminHomeProps) {
-  const navigation = useNavigation<AdminNavigationProp>();
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  const [pendingCount, setPendingCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [isSeeding, setIsSeeding] = useState(false);
-
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      const [pendingUsers, _config] = await Promise.all([
-        adminService.getPendingUsers(),
-        configService.getVacationConfig(),
-      ]);
-
-      setPendingCount(pendingUsers.length);
-    } catch (error) {
-      console.error("Erro ao carregar dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      loadDashboardData();
-    }, [])
-  );
-
-  const hasPending = pendingCount > 0;
+  const {
+    loading,
+    pendingCount,
+    hasPending,
+    isDark,
+    toggleColorScheme,
+    refreshDashboard,
+    navigation,
+  } = useAdminHome();
 
   return (
     <ScreenWrapper
@@ -75,7 +42,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
       refreshControl={
         <RefreshControl
           refreshing={loading}
-          onRefresh={loadDashboardData}
+          onRefresh={refreshDashboard}
           tintColor="#7C3AED"
         />
       }
@@ -162,7 +129,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
           </Text>
 
           <TouchableOpacity
-            onPress={() => hasPending && navigation.navigate("UserApproval")}
+            onPress={hasPending ? navigation.toUserApproval : undefined}
             disabled={!hasPending}
             className={`py-3 rounded-xl flex-row justify-center items-center ${
               hasPending ? "bg-orange-500" : "bg-gray-100 dark:bg-gray-800"
@@ -185,7 +152,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
 
         <View className="flex-row gap-4 mb-4">
           <TouchableOpacity
-            onPress={() => navigation.navigate("EmployeesList")}
+            onPress={navigation.toEmployees}
             className="flex-1 bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm active:opacity-70"
           >
             <View className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 rounded-full items-center justify-center mb-3">
@@ -198,7 +165,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate("AllVacations")}
+            onPress={navigation.toAudits}
             className="flex-1 bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm active:opacity-70"
           >
             <View className="bg-emerald-100 dark:bg-emerald-900/30 w-10 h-10 rounded-full items-center justify-center mb-3">
@@ -212,7 +179,7 @@ export function AdminHome({ user, onLogout }: AdminHomeProps) {
         </View>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate("AdminSettings")}
+          onPress={navigation.toSettings}
           className="bg-surface-light dark:bg-surface-dark p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm active:opacity-70 flex-row items-center mb-8"
         >
           <View className="bg-purple-100 dark:bg-purple-900/30 w-12 h-12 rounded-2xl items-center justify-center mr-4">

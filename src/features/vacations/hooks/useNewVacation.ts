@@ -1,15 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { addDays, differenceInDays } from "date-fns";
+import { addDays, differenceInDays, startOfDay } from "date-fns";
 import NetInfo from "@react-native-community/netinfo";
 
 import { vacationService } from "../services/vacationService";
-import { CreateVacationDTO } from "../types";
-import { User } from "@/types";
-import { DialogVariant } from "@/components/Dialog";
+import { configService } from "@/features/vacations/services/configService";
+import { CreateVacationDTO, User, DialogState } from "@/types";
 
 export function useNewVacation(user: User | null) {
   const navigation = useNavigation();
+
+  const [minDaysNotice, setMinDaysNotice] = useState(0);
+  const [minDate, setMinDate] = useState(new Date());
+
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(addDays(new Date(), 15));
   const [observation, setObservation] = useState("");
@@ -17,13 +20,38 @@ export function useNewVacation(user: User | null) {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  const [dialog, setDialog] = useState({
+  const [dialog, setDialog] = useState<DialogState>({
     visible: false,
     title: "",
     message: "",
-    variant: "info" as DialogVariant,
+    variant: "info",
     onConfirm: () => {},
   });
+
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const config = await configService.getVacationConfig();
+
+        setMinDaysNotice(config.minDaysNotice);
+
+        const calculatedMinDate = addDays(
+          startOfDay(new Date()),
+          config.minDaysNotice
+        );
+
+        setMinDate(calculatedMinDate);
+
+        if (startDate < calculatedMinDate) {
+          setStartDate(calculatedMinDate);
+          setEndDate(addDays(calculatedMinDate, 15));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar config de férias:", error);
+      }
+    }
+    loadConfig();
+  }, []);
 
   const duration = useMemo(() => {
     const diff = differenceInDays(endDate, startDate);
@@ -47,6 +75,7 @@ export function useNewVacation(user: User | null) {
     }
 
     setLoading(true);
+
     try {
       const network = await NetInfo.fetch();
       const isOnline = !!network.isConnected && !!network.isInternetReachable;
@@ -54,7 +83,7 @@ export function useNewVacation(user: User | null) {
       const requestData: CreateVacationDTO = {
         userId: user.id,
         userName: user.name,
-        userAvatarId: (user as any).avatarID || (user as any).avatarId || null,
+        userAvatarId: user.avatarID ?? null,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         observation: observation.trim(),
@@ -62,24 +91,20 @@ export function useNewVacation(user: User | null) {
 
       await vacationService.createRequest(requestData);
 
-      setLoading(false);
-
       setDialog({
         visible: true,
-        title: isOnline ? "Tudo certo! 🌴" : "Salvo no dispositivo! 📡",
+        title: isOnline ? "Solicitação Enviada! 🌴" : "Salvo no Dispositivo 📡",
         message: isOnline
-          ? "Sua solicitação foi enviada com sucesso para o gestor."
-          : "Você está offline, mas sua solicitação foi salva e será sincronizada assim que houver conexão.",
+          ? "Seu gestor foi notificado e sua solicitação está pendente."
+          : "Você está sem internet, mas salvamos sua solicitação no aparelho. Ela será enviada automaticamente assim que a conexão voltar.",
         variant: isOnline ? "success" : "info",
         onConfirm: () => {
           setDialog((d) => ({ ...d, visible: false }));
-
           navigation.goBack();
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("ERRO CRÍTICO AO CRIAR FÉRIAS:", error);
-      setLoading(false);
       setDialog({
         visible: true,
         title: "Erro inesperado",
@@ -88,6 +113,8 @@ export function useNewVacation(user: User | null) {
         variant: "error",
         onConfirm: closeDialog,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,6 +123,8 @@ export function useNewVacation(user: User | null) {
     setStartDate,
     endDate,
     setEndDate,
+    minDate,
+    minDaysNotice,
     observation,
     setObservation,
     loading,

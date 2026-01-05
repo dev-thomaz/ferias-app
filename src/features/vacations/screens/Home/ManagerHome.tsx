@@ -23,15 +23,16 @@ import {
   ArrowUp,
 } from "lucide-react-native";
 
-import { VacationRequest } from "../../types";
+import { VacationRequest, User } from "@/types";
 import { VacationCard } from "../../components/VacationCard";
 import { Dialog } from "@/components/Dialog";
-import { User } from "@/types";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { useManagerVacations } from "../../hooks/useManagerVacations";
 import { HomeHeader } from "../../components/HomeHeader";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import { FilterSortBar } from "@/components/FilterSortBar";
+
+import { translateStatusFilter } from "@/utils/textUtils";
 
 const SPINNER_GIF = require("@assets/spinner.gif");
 
@@ -50,14 +51,15 @@ interface ManagerHomeProps {
   onLogout: () => void;
 }
 
+type HistoryFilterType = "ALL" | "APPROVED" | "REJECTED";
+
 export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
   const navigation = useNavigation<ManagerNavigationProp>();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [historySubFilter, setHistorySubFilter] = useState<
-    "ALL" | "APPROVED" | "REJECTED"
-  >("ALL");
+  const [historySubFilter, setHistorySubFilter] =
+    useState<HistoryFilterType>("ALL");
 
   const {
     loading,
@@ -237,7 +239,9 @@ export function ManagerHome({ user, onLogout }: ManagerHomeProps) {
             ? "Tudo limpo! Nenhuma pendência."
             : historySubFilter === "ALL"
             ? "Nenhum histórico encontrado."
-            : `Nenhum registro com status "${historySubFilter}".`}
+            : `Nenhum registro em "${translateStatusFilter(
+                historySubFilter
+              )}".`}
         </Text>
       </View>
     );

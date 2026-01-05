@@ -1,26 +1,45 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { LayoutAnimation } from "react-native";
+import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { db } from "@/config/firebase";
-import { VacationRequest } from "../types";
-import { DialogVariant } from "@/components/Dialog";
+import {
+  VacationRequest,
+  DialogState,
+  FirestoreVacationData,
+  VacationStatus,
+} from "@/types";
 
 type TabType = "PENDING" | "HISTORY";
 
-const formatFirestoreDate = (dateField: any): string => {
+const formatFirestoreDate = (
+  dateField: FirebaseFirestoreTypes.Timestamp | string | null | undefined
+): string => {
   if (!dateField) return new Date().toISOString();
-  if (typeof dateField.toDate === "function")
+  if (typeof dateField === "object" && "toDate" in dateField)
     return dateField.toDate().toISOString();
   if (typeof dateField === "string") return dateField;
   return new Date().toISOString();
 };
 
-const mapDocument = (doc: any): VacationRequest => {
-  const data = doc.data();
+const mapDocument = (
+  doc: FirebaseFirestoreTypes.QueryDocumentSnapshot
+): VacationRequest => {
+  const data = doc.data() as FirestoreVacationData;
   return {
     id: doc.id,
-    ...data,
+    userId: data.userId || "",
+    userName: data.userName || "",
+    userAvatarId: data.userAvatarId ?? null,
+    startDate: data.startDate || "",
+    endDate: data.endDate || "",
+    observation: data.observation || "",
+    status: (data.status as VacationStatus) || "PENDING",
     createdAt: formatFirestoreDate(data.createdAt),
     updatedAt: formatFirestoreDate(data.updatedAt),
+    managedBy: data.managedBy || undefined,
+    managerName: data.managerName || undefined,
+    managerAvatarId: data.managerAvatarId || undefined,
+    managerObservation: data.managerObservation || undefined,
     isSyncing: doc.metadata.hasPendingWrites,
   };
 };
@@ -30,22 +49,22 @@ export function useManagerVacations(userId: string) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("PENDING");
 
-  const [dialog, setDialog] = useState({
+  const [dialog, setDialog] = useState<DialogState>({
     visible: false,
     title: "",
     message: "",
-    variant: "info" as DialogVariant,
+    variant: "info",
   });
 
   useEffect(() => {
     setLoading(true);
 
-    let query = db.collection("vacations");
+    let query: FirebaseFirestoreTypes.Query = db.collection("vacations");
 
     if (activeTab === "PENDING") {
-      query = query.where("status", "==", "PENDING") as any;
+      query = query.where("status", "==", "PENDING");
     } else {
-      query = query.where("managedBy", "==", userId) as any;
+      query = query.where("managedBy", "==", userId);
     }
 
     const unsubscribe = query
@@ -76,6 +95,14 @@ export function useManagerVacations(userId: string) {
     setActiveTab(tab);
   };
 
+  const closeDialog = () => setDialog((prev) => ({ ...prev, visible: false }));
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setLoading(false);
+  }, []);
+
   return {
     loading,
     activeTab,
@@ -83,7 +110,8 @@ export function useManagerVacations(userId: string) {
     dialog,
     setDialog,
     changeTab,
-    loadData: () => {},
+    closeDialog,
     totalCount: data.length,
+    loadData,
   };
 }

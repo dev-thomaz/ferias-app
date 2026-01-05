@@ -9,7 +9,7 @@ import {
 } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
-import { VacationRequest } from "../../types";
+import { VacationRequest, User } from "@/types";
 import { formatShortName } from "@/utils/textUtils";
 import { formatDate } from "@/utils/dateUtils";
 import { Avatar } from "@/components/Avatar";
@@ -21,13 +21,12 @@ import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { useVacationDetailsBase } from "../../hooks/useVacationDetailsBase";
 import { useManagerActions } from "../../hooks/useManagerActions";
 
-export function ManagerView({
-  request,
-  user,
-}: {
-  request: VacationRequest & { id: string };
-  user: any;
-}) {
+interface ManagerViewProps {
+  request: VacationRequest;
+  user: User;
+}
+
+export function ManagerView({ request, user }: ManagerViewProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 

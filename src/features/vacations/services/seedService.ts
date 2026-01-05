@@ -1,6 +1,19 @@
 import { authInstance, db } from "@/config/firebase";
 import firestore from "@react-native-firebase/firestore";
-import { UserRole } from "@/types";
+import { UserRole, VacationStatus } from "@/types";
+
+interface SeedManager {
+  id: string;
+  name: string;
+  avatarID: number;
+}
+
+interface SeedUserPayload {
+  fullName: string;
+  email: string;
+  role: UserRole;
+  avatarID: number;
+}
 
 const FIRST_NAMES_M = [
   "João",
@@ -39,22 +52,21 @@ export const seedService = {
   async run() {
     console.log("🚀 Iniciando Seed Nativo (Admin / Gestor / Colaborador)...");
 
-    const operationalManagers: {
-      id: string;
-      name: string;
-      avatarID: number;
-    }[] = [];
-    const usersToCreate: any[] = [];
+    const operationalManagers: SeedManager[] = [];
+    const usersToCreate: SeedUserPayload[] = [];
 
     for (let i = 0; i < 10; i++) {
       const isMale = i < 5;
       const firstName = isMale
         ? FIRST_NAMES_M[Math.floor(Math.random() * FIRST_NAMES_M.length)]
         : FIRST_NAMES_F[Math.floor(Math.random() * FIRST_NAMES_F.length)];
+
       const lastName =
         LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
       const fullName = `${firstName} ${lastName}`;
-      const email = `${firstName.toLowerCase()}${i}@teste.com`;
+
+      const email = `${firstName.toLowerCase()}${i}_${Date.now()}@teste.com`;
+
       const avatarID = isMale
         ? Math.floor(Math.random() * 50) + 1
         : Math.floor(Math.random() * 50) + 51;
@@ -80,7 +92,7 @@ export const seedService = {
           role: u.role,
           avatarID: u.avatarID,
           accountStatus: "ACTIVE",
-
+          isSyncing: false,
           createdAt: firestore.FieldValue.serverTimestamp(),
         });
 
@@ -102,8 +114,9 @@ export const seedService = {
         }
 
         console.log(`✅ ${u.fullName} (${u.role}) criado.`);
-      } catch (e: any) {
-        console.error(`❌ Erro em ${u.email}:`, e.message);
+      } catch (error) {
+        const err = error as Error;
+        console.error(`❌ Erro em ${u.email}:`, err.message);
       }
     }
 
@@ -115,18 +128,20 @@ export const seedService = {
     uid: string,
     uName: string,
     uAvatar: number,
-    operationalManagers: any[]
+    operationalManagers: SeedManager[]
   ) {
     const years = [2023, 2024, 2025];
-    const statusOptions = ["COMPLETED", "REJECTED"];
+    const statusOptions: VacationStatus[] = ["COMPLETED", "REJECTED"];
 
     for (const year of years) {
       const manager =
         operationalManagers[
           Math.floor(Math.random() * operationalManagers.length)
         ];
+
       const status =
         statusOptions[Math.floor(Math.random() * statusOptions.length)];
+
       const month = Math.floor(Math.random() * 11);
       const day = Math.floor(Math.random() * 15) + 1;
 
@@ -134,10 +149,13 @@ export const seedService = {
         userId: uid,
         userName: uName,
         userAvatarId: uAvatar,
+
         managedBy: manager.id,
         managerName: manager.name,
         managerAvatarId: manager.avatarID,
+
         status: status,
+
         startDate: new Date(year, month, day).toISOString(),
         endDate: new Date(year, month, day + 15).toISOString(),
 
@@ -145,7 +163,8 @@ export const seedService = {
         updatedAt: firestore.Timestamp.fromDate(
           new Date(year, month - 1, day + 2)
         ),
-        observation: "",
+
+        observation: "Gerado via Seed",
         managerObservation:
           status === "COMPLETED"
             ? "Aproveite o descanso!"
@@ -157,18 +176,23 @@ export const seedService = {
       operationalManagers[
         Math.floor(Math.random() * operationalManagers.length)
       ];
+
     await db.collection("vacations").add({
       userId: uid,
       userName: uName,
       userAvatarId: uAvatar,
+
       managedBy: manager2026.id,
       managerName: manager2026.name,
       managerAvatarId: manager2026.avatarID,
+
       status: "APPROVED",
       startDate: new Date(2026, 5, 10).toISOString(),
       endDate: new Date(2026, 5, 25).toISOString(),
+
       createdAt: firestore.FieldValue.serverTimestamp(),
       updatedAt: firestore.FieldValue.serverTimestamp(),
+
       observation: "Viagem programada.",
       managerObservation: "Aprovado conforme solicitação.",
     });

@@ -2,8 +2,8 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { ArrowDown, ArrowUp } from "lucide-react-native";
 
-export type FilterOption = {
-  id: string;
+export type FilterOption<T extends string = string> = {
+  id: T;
   label: string;
 };
 
@@ -13,10 +13,11 @@ type Variant = "admin" | "manager" | "employee";
 
 type LayoutMode = "row" | "stacked";
 
-interface FilterSortBarProps {
-  filters: FilterOption[];
-  activeFilter: string;
-  onFilterChange: (id: any) => void;
+interface FilterSortBarProps<T extends string> {
+  filters: FilterOption<T>[];
+  activeFilter: T;
+
+  onFilterChange: (id: T) => void;
   sortOrder: SortOrder;
   onToggleSort: () => void;
   variant?: Variant;
@@ -45,7 +46,7 @@ const THEME_CONFIG = {
   },
 };
 
-export function FilterSortBar({
+export function FilterSortBar<T extends string>({
   filters,
   activeFilter,
   onFilterChange,
@@ -54,7 +55,7 @@ export function FilterSortBar({
   variant = "admin",
   layout = "row",
   disabled = false,
-}: FilterSortBarProps) {
+}: FilterSortBarProps<T>) {
   const theme = THEME_CONFIG[variant];
 
   const FilterList = () => (
